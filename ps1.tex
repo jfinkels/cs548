@@ -1,0 +1,89 @@
+\documentclass[draft]{article}
+
+% new commands
+\newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
+
+% author, date, and title
+\author{Jef{}frey~Finkelstein}
+\date{26 January 2012}
+\title{CS548 problem set 1}
+
+\begin{document}
+\maketitle
+\collaborators{Davide, Dimitris, Xianrui}
+\begin{enumerate}
+\item
+  The interactive proof for graph isomorphism is a proof of knowledge.
+  Construct a knowledge extractor $E$ as follows on input $(G_0, G_1)$, proceeding in steps from stage $i=1$ up to $n$.
+  \begin{enumerate}
+  \item The prover sends the intermediate graph $H$ (a graph which is isomorphic to $G_0$ under a random isomorphism, $\sigma$) to the extractor.
+  \item The extractor lets $b=0$ and sends it to the prover, which sends back an isomorphism $\psi_0$ (which, if honest, should be $\sigma$).
+  \item The extractor lets $b=1$ and sends it to the prover, which sends back an isomorphism $\psi_1$ (which, if honest, should be $\pi\circ\sigma$).
+  \item For both values of $b\in\{0,1\}$, check if $\psi_b$ is a correct isomorphism from $G_b$ to $H$ (checking whether a given permutation is a correct isomorphism can be done in polynomial time).
+  \item
+    There are now three cases.
+    \begin{enumerate}
+    \item If both are correct, then $\psi_0\circ\psi_1^{-1}=\sigma\circ(\pi\circ\sigma)^{-1}=\sigma\circ\sigma^{-1}\circ\pi=\pi$, in which case accept and output $\pi$.
+    \item If neither are correct, then reject and output nothing.
+    \item
+      If exactly one is correct, increment the stage number to $i+1$ and repeat.
+      If $i$ is greater than $n$, then reject and output nothing.
+    \end{enumerate}
+  \end{enumerate}
+  This algorithm runs in polynomial time, since each stage is a polynomial time bounded interactive protocol, and it runs for $n$ rounds, where $n$ is the security parameter.
+  A polynomial times $n$ is still a polynomial in $n$.
+
+  If this extractor rejects with no output at any stage before stage $n$, then the original verifier would have rejected (since it would have received an incorrect isomorphism from the prover).
+  If this extractor rejects with no output at stage $n$, then the original verifier would have accepted with probability at most $\frac{1}{2^n}$ (since there were two cases at each of the $n$ stages in which exactly one of the two isomorphisms was correct).
+  If this extractor accepts and outputs an isomorphism, then the probability that the original verifier would have accepted is greater than $\frac{1}{2^n}$ (since it will accept and output on any case other than the previous ones).
+
+\item
+  An interactive proof $(P, V)$ is WI if and only if it is ZK with a computationally unbounded simulator.
+
+  ($\leftarrow$) Suppose $(P, V)$ is a zero knowledge proof with respect to a computationally unbounded simulator.
+  So for all non-uniform probabilistic polynomial time verifiers $V^*$ there exists a simulator $S$ such that for all $x$ and $w$ with $(x,w)\in R$, and for all $z$, $[P, V^*]\left((x, w), (x, z)\right)\simeq S\left((x, z)\right)$.
+  Then for all witnesses $w_1$ and $w_2$ with $(x,w_1)\in R$ and $(x,w_2)\in R$, we have that
+  \begin{displaymath}
+    [P, V*]\left((x, w_1), (x, z)\right)\simeq S\left((x, z)\right)
+  \end{displaymath}
+  and
+  \begin{displaymath}
+    S\left((x, z)\right)\simeq[P, V^*]\left((x, w_2), (x, z)\right).
+  \end{displaymath}
+  Since the $\simeq$ relation is transitive, it follows that $[P, V^*]\left((x, w_1), (x, z)\right)_2\simeq[P, V^*]\left((x, w_2), (x, z)\right)_2$.
+  Therefore the $(P, V)$ interactive proof is witness indistinguishable.
+
+  ($\rightarrow$) I am assuming here that the relation $R$ which the $(P, V)$ interactive protocol decides is an $\mathsf{NP}$ relation.
+  Hence the length of a witness of a string $x$ is bounded above by some polynomial $p$ in the length of the string $x$.
+
+ Suppose $(P, V)$ is witness indistinguishable, so for all $x$, $w_1$, and $w_2$ with $(x, w_1)\in R$ and $(x, w_2)\in R$, for all non-uniform probabilistic polynomial time verifiers $V^*$, and for all $z$, $[P, V^*]\left((x, w_1), (x, z)\right)_2\simeq [P, V^*]\left((x, w_2), (x, z)\right)_2$.
+  Construct a new simulator $S$ as follows on input $(x, z)$.
+  \begin{enumerate}
+  \item
+    Perform an exhaustive search on strings up to length $p(|x|)$, where $p$ is the polynomial which bounds the lengths of the witnesses of $x$ with respect to the relation $R$, in order to find a witness of $x$ (for example, the lexicographically first witness).
+    If no witness is found after searching all strings up to length $p(|x|)$, reject.
+    Otherwise, call this witness $w_0$.
+  \item Output the result of $[P, V^*]\left((x, w_0), (x, z)\right)$.
+  \end{enumerate}
+
+  If no witness exists, then $x$ is not in the $\mathsf{NP}$ language induced by $R$, and this simulator always rejects.
+  To show correctness, suppose $(x, w)\in R$.
+  Then $S\left((x, w)\right)=[P, V^*]\left((x, w_0), (x, z)\right)\simeq[P, V^*]\left((x, w), (x, z)\right)$.
+  Therefore, the $(P, V)$ interactive proof is zero knowledge.
+
+\item
+  Proof by contradiction using a hybrid argument.
+  Assume $(P^{\|k}, V^{\|k})$ is not a witness indistinguishable interactive protocol, so there exists a parallel verifier $V^*$ that distinguishes the witness vector $(w^1_1, w^1_2, \ldots, w^1_k)$ from witness vector $(w^2_1, w^2_2, \ldots, w^2_k)$.
+  By a hybrid argument, $V^*$ also distinguishes the hybrid witness vector $(w^1_1, w^2_1, \ldots, w^1_{i-1}, w^2_i, w^2_{i+1}, \ldots, w^2_k)$ from witness vector $(w^1_1, w^2_1, \ldots, w^1_{i-1}, w^1_i, w^2_{i+1}, \ldots, w^2_k)$ for some $i\in\{1, 2, \ldots, k\}$.
+  Construct a new verifier $\hat{V}$ which will distinguish witnesses when interacting with the (non-parallel) prover $P$ as follows.
+  Suppose $x$ is the common input to the verifier (and the prover $P$).
+  The auxiliary non-uniform input to $\hat{V}$ is the vector of common inputs $(x_1, x_2, \ldots, x_k)$, the vector $(w^1_1, w^1_2, \ldots, w^1_{i-1}, w^2_{i+1}, \ldots, w^2_k)$, and the corresponding index $i$.
+
+  For all $j\neq i$, the verifier $\hat{V}$ will simulate the interaction of the parallel verifier $V^*$ with the parallel prover on common input $x_j$ and witness $w_j$.
+  For the $i$th interaction, however, $\hat{V}$ will act as an intermediary between the $i$th instance of the parallel verifier $V^*$ and the external, non-parallel prover $P$.
+  The verifier $\hat{V}$ will simulate this external interaction in parallel with the rest of the internal interactions between the parallel prover and the parallel verifier (for example, when the parallel verifier instances send a message to the parallel prover instances, the verifier $\hat{V}$ sends that message out to the external non-parallel prover $P$; messages from the internal parallel and external non-parallel provers are synchronized and sent to the internal parallel verifier simultaneously).
+
+  Now $\hat{V}$ can distinguish whether $P$ uses $w^1_i$ or $w^2_i$.
+  Therefore $(P, \hat{V})$ is not a witness indistinguishable interactive protocol.
+\end{enumerate}
+\end{document}
