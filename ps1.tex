@@ -1,5 +1,5 @@
-\documentclass[draft]{article}
-
+\documentclass{article}
+\usepackage{fullpage}
 % new commands
 \newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
 
@@ -61,7 +61,7 @@
   \begin{enumerate}
   \item
     Perform an exhaustive search on strings up to length $p(|x|)$, where $p$ is the polynomial which bounds the lengths of the witnesses of $x$ with respect to the relation $R$, in order to find a witness of $x$ (for example, the lexicographically first witness).
-    If no witness is found after searching all strings up to length $p(|x|)$, reject.
+    If no witness is found after searching all strings up to length $p(|x|)$, reject and output nothing.
     Otherwise, call this witness $w_0$.
   \item Output the result of $[P, V^*]\left((x, w_0), (x, z)\right)$.
   \end{enumerate}
@@ -74,7 +74,7 @@
 \item
   Proof by contradiction using a hybrid argument.
   Assume $(P^{\|k}, V^{\|k})$ is not a witness indistinguishable interactive protocol, so there exists a parallel verifier $V^*$ that distinguishes the witness vector $(w^1_1, w^1_2, \ldots, w^1_k)$ from witness vector $(w^2_1, w^2_2, \ldots, w^2_k)$.
-  By a hybrid argument, $V^*$ also distinguishes the hybrid witness vector $(w^1_1, w^2_1, \ldots, w^1_{i-1}, w^2_i, w^2_{i+1}, \ldots, w^2_k)$ from witness vector $(w^1_1, w^2_1, \ldots, w^1_{i-1}, w^1_i, w^2_{i+1}, \ldots, w^2_k)$ for some $i\in\{1, 2, \ldots, k\}$.
+  By a hybrid argument, $V^*$ also distinguishes hybrid witness vector $(w^1_1, w^1_2, \ldots, w^1_{i-1}, w^2_i, w^2_{i+1}, \ldots, w^2_k)$ from $(w^1_1, w^1_2, \ldots, w^1_{i-1}, w^1_i, w^2_{i+1}, \ldots, w^2_k)$ for some $i\in\{1, 2, \ldots, k\}$.
   Construct a new verifier $\hat{V}$ which will distinguish witnesses when interacting with the (non-parallel) prover $P$ as follows.
   Suppose $x$ is the common input to the verifier (and the prover $P$).
   The auxiliary non-uniform input to $\hat{V}$ is the vector of common inputs $(x_1, x_2, \ldots, x_k)$, the vector $(w^1_1, w^1_2, \ldots, w^1_{i-1}, w^2_{i+1}, \ldots, w^2_k)$, and the corresponding index $i$.
@@ -84,6 +84,7 @@
   The verifier $\hat{V}$ will simulate this external interaction in parallel with the rest of the internal interactions between the parallel prover and the parallel verifier (for example, when the parallel verifier instances send a message to the parallel prover instances, the verifier $\hat{V}$ sends that message out to the external non-parallel prover $P$; messages from the internal parallel and external non-parallel provers are synchronized and sent to the internal parallel verifier simultaneously).
 
   Now $\hat{V}$ can distinguish whether $P$ uses $w^1_i$ or $w^2_i$.
+  Finally, $\hat{V}$ runs in polynomial time because the parallel prover and parllel verifier run in polynomial time (with respect to the security parameter $n$), and the overall interaction with the non-parallel prover just involves a simulation among polynomial time protocols.
   Therefore $(P, \hat{V})$ is not a witness indistinguishable interactive protocol.
 \end{enumerate}
 \end{document}
