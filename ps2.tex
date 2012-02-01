@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{amsmath}
+
+% new commands
+\newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
+\newcommand{\BPP}{\mathsf{BPP}}
+
+% author, date, and title
+\author{Jef{}frey~Finkelstein}
+\date{2 February 2012}
+\title{CS548 problem set 2}
+
+\begin{document}
+\maketitle
+\collaborators{Davide, Dimitris}
+\begin{enumerate}
+\item No answer.
+\item
+  In this problem, we assume that the simulator $S$ outputs the view of $V$, which includes the message $V$ ``received'' under the simulation.
+
+  Suppose $R$ has a one message zero knowledge proof system with an externally given random string.
+  We want to show that $L_R$, defined by $L_R=\left\{ x \middle| \exists w\in\{0, 1\}^{\leq p(|x|)}\colon (x, w)\in R \right\}$ where $p$ is a polynomial bounding the length of witnesses of $x$ with respect to $R$, is in $\BPP$.
+  We claim that $S$ is a $\BPP$ machine.
+  Below when we say ``$S(x, r)=1$, we really mean ``$S(x, r)$ outputs an accepting transcript''.
+
+  Suppose $x\in L$.
+  Since $(P, V)$ is a zero knowledge protocol for $R$
+  \begin{displaymath}
+    \left|\Pr\left[S(x,r)=1\right] - \Pr\left[[P,V]((x, w, r), (r, z))_2=1\right]\right| < \nu(n)
+  \end{displaymath}
+  for all negligible functions $\nu$.
+  By the completeness of the $(P, V)$ protocol,
+  \begin{displaymath}
+    \Pr\left[[P, V]((x, w, r), (r, z))_2 = 1\right] >= 1 - \eta(n)
+  \end{displaymath}
+  for some negligible function $eta$.
+  Together, these give us
+  \begin{align*}
+    \left|\Pr\left[S(x,r)=1\right] - \Pr\left[[P,V]((x, w, r), (r, z))_2=1\right]\right| < \nu(n) \\
+    \implies \Pr\left[S(x,r)=1\right] > \Pr\left[[P,V]((x, w, r), (r, z))_2=1\right] - \nu(n) \\
+    \implies \Pr\left[S(x,r)=1\right] > 1 - \eta(n) - \nu(n).
+  \end{align*}
+  Since the sum of two negligible functions is itself a negligible function, $\Pr[S(x,r)=1]$ is bounded below by $1-\kappa(n)$ where $\kappa(n)$ is a negligible function.
+
+  Suppose now that $x\notin L$.
+  To show that $S$ outputs an accepting transcript with low probability, we use the proof strategy from the Goldreich--Krawczyk proof that if a language has a black box zero knowledge proof system in three rounds, then $L\in\BPP$.
+  We show that if $(P, V)$ is a sound proof system (it is) then $S$ is a sound $\BPP$ machine.
+  The proof is by contradiction: assume $S$ accepts $x$ with non-negligible probability.
+  We intend to show that this causes $V$ to accept with non-negligible probability when interacting with some cheating prover $P^*$.
+
+  Construct $P^*$ as follows, on input $(x, r)$:
+  \begin{enumerate}
+  \item Run $S(x, r)$ to get the resulting view of $V$.
+  \item
+    The only part of the view that we need is the message $V$ ``received'' during the simulation, call it $a$.
+    Forward $a$ to the external verifier $V$.
+  \end{enumerate}
+  Now $S$ outputs an accepting transcript if and only if $V$ accepts when interacting with $P^*$ (because $V$ does whatever the simulator did).
+  Thus if $S$ accepts with non-negligible probability, then $V$ accepts with non-negligible probability.
+  This is a contradiction with the hypothesis that $(P, V)$ is a sound proof system.
+  We can conclude that $S$ accepts with negligible probability.
+
+  Therefore we have shown that
+  \begin{itemize}
+  \item if $x\in L$ then $\Pr[S(x, r)\textnormal{ accepts}]>1-\eta_1(n)$
+  \item if $x\notin L$ the $\Pr[S(x, r)\textnormal{ accepts}]<\eta_2(n)$
+  \end{itemize}
+  for negligible functions $\eta_1$ and $\eta_2$.
+  Therefore $L\in\BPP$.
+
+\item No answer.
+\end{enumerate}
+\end{document}
