@@ -20,12 +20,12 @@
   In this problem, we assume that the simulator $S$ outputs the view of $V$, which includes the message $V$ ``received'' under the simulation.
 
   Suppose $R$ has a one message zero knowledge proof system with an externally given random string.
-  We want to show that $L_R$, defined by $L_R=\left\{ x \middle| \exists w\in\{0, 1\}^{\leq p(|x|)}\colon (x, w)\in R \right\}$ where $p$ is a polynomial bounding the length of witnesses of $x$ with respect to $R$, is in $\BPP$.
+  We want to show that $L_R$, defined by $L_R=\left\{ x \,\middle|\, \exists w\in\{0, 1\}^{\leq p(|x|)}\colon (x, w)\in R \right\}$ where $p$ is a polynomial bounding the length of witnesses of $x$ with respect to $R$, is in $\BPP$.
   We claim that $S$ is a $\BPP$ machine.
   Below when we say ``$S(x, r)=1$, we really mean ``$S(x, r)$ outputs an accepting transcript''.
 
   Suppose $x\in L$.
-  Since $(P, V)$ is a zero knowledge protocol for $R$
+  Since $(P, V)$ is a zero knowledge protocol for $R$,
   \begin{displaymath}
     \left|\Pr\left[S(x,r)=1\right] - \Pr\left[[P,V]((x, w, r), (r, z))_2=1\right]\right| < \nu(n)
   \end{displaymath}
@@ -53,8 +53,8 @@
   \begin{enumerate}
   \item Run $S(x, r)$ to get the resulting view of $V$.
   \item
-    The only part of the view that we need is the message $V$ ``received'' during the simulation, call it $a$.
-    Forward $a$ to the external verifier $V$.
+    The only part of the view that we need is the message $V$ ``received'' during the simulation.
+    Forward that message to the external verifier $V$.
   \end{enumerate}
   Now $S$ outputs an accepting transcript if and only if $V$ accepts when interacting with $P^*$ (because $V$ does whatever the simulator did).
   Thus if $S$ accepts with non-negligible probability, then $V$ accepts with non-negligible probability.
