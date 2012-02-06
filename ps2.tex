@@ -1,10 +1,14 @@
 \documentclass{article}
 \usepackage{fullpage}
 \usepackage{amsmath}
+\usepackage{dsfont}
 
 % new commands
 \newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
-\newcommand{\BPP}{\mathsf{BPP}}
+\newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
+\newcommand{\lang}[1]{{\ensuremath{\mathsf{#1}}}}
+\newcommand{\BPP}{\class{BPP}}
+\newcommand{\NP}{\class{NP}}
 
 % author, date, and title
 \author{Jef{}frey~Finkelstein}
@@ -13,9 +17,52 @@
 
 \begin{document}
 \maketitle
-\collaborators{Davide, Dimitris}
+\collaborators{Davide, Dimitris, Ben}
 \begin{enumerate}
-\item No answer.
+
+\item
+  We claim that the new six-round protocol with a computationally secret commitment scheme (used by the verifier) is \emph{not} a computationally sound zero knowledge proof protocol.
+  Supposing the correctness of the computationally secret commitment scheme, we construct a malicious prover which fools the verifier into committing even when a string is not in the $\NP$ language.
+  In this case, the language is \lang{HAMCYCLE}, defined by $\left\{G \,|\, G\text{ has a Hamiltonian cycle}\right\}$.
+
+  We will consider the new six-round protocol to be a modification of the seven-round protocol described by Rosen in \cite[Figure 2]{rosen}.
+  Suppose the following:
+  \begin{itemize}
+  \item $G$ is the common input graph with edge set $E$ and vertex set $V$
+  \item $\sigma\in\{0,1\}$ is the random bit whose commitment is sent by the verifier in its first round
+  \item $\pi$ is the random permutation of $V$ chosen by the prover in its first round of the three-round \lang{HAMCYCLE} protocol
+  \end{itemize}
+  The malicious prover we construct has two differences from the original honest prover protocol.
+  \begin{itemize}
+  \item Where the protocol specifies that the prover sends an $n$-by-$n$ matrix of commitments to the graph isomorphic to $G$ under the permutation $\pi$, send instead a matrix $M$ whose entries are defined by
+    \begin{displaymath}
+      M_{\pi(i),\pi(j)} =
+      \begin{cases}
+        comm(1) & \text{if } (i, j)\in E \\
+        comm(\sigma) & \text{if } (i, j)\notin E,
+      \end{cases}
+    \end{displaymath}
+    where $comm$ is the commitment function of the computationally hiding commitment scheme.
+    Here the prover is using the same commitment scheme as the verifier.
+    This is allowed in the new protocol and not in the old protocol because the new protocol uses a computationally hiding commitment scheme whereas the old protocol required a perfectly hiding commitment scheme.
+  \item Where the protocol specifies that the prover opens the commitments to the entries in the matrix which correspond to edges in the supposed Hamiltonian cycle, send instead an opening to each of $(\tau(i),\tau(i+1))$, where $\tau$ is a random permutation on the vertices and $i\in\{1, 2, \ldots, |V|\}$.
+  \end{itemize}
+
+  We wish to show that if $G\notin\lang{HAMCYCLE}$, then the probability that $V$ accepts when interacting with the malicious prover described above is non-negligible.
+  Suppose now that $G\notin\lang{HAMCYCLE}$, so $G$ does not have a Hamiltonian cycle, hence no graph isomorphic to $G$ has a Hamiltonian cycle and, in particular, neither does the graph induced by the permutation $\pi$.
+
+  In the case that $\sigma=0$, the protocol specifies that the prover sends $\pi$ to the verifier and additionally opens each of the commitments in the matrix.
+  Since $comm(\sigma)=comm(0)$, the verifier now sees the matrix defined by $M_{\pi(i), \pi(j)}=1$ if and only if $(i, j)\in E$.
+  This is exactly the adjacency matrix of the graph isomorphic to $G$ under the permutation $\pi$.
+  The verifier itself now checks that the graph defined by this matrix is indeed isomorphic to the common input graph $G$ under the permutation $\pi$.
+  Since it is, the verifier accepts with probability 1.
+
+  In the case that $\sigma=1$, the protocol specifies that the prover should open the commitments to each entry in the matrix $M_{\pi(i), \pi(j)}$ where $(i, j)$ is an edge in the supposed Hamiltonian cycle.
+  Since $comm(\sigma)=comm(1)$, the matrix $M_{\pi(i), \pi(j)}$ is now $\mathds{1}\otimes\mathds{1}$, the all-ones matrix.
+  The verifier now checks that all opened entries in the matrix are 1s (they are with probability 1) and that they form a cycle of length $n$ (they do with probability 1, since the malicious prover opened the ``edges'' between a random permutation of vertices $\tau$).
+
+  Since $G\notin\lang{HAMCYCLE}$ but the verifier accepts with probability 1 when interacting with this prover, this protocol is not computationally sound.
+
 \item
   In this problem, we assume that the simulator $S$ outputs the view of $V$, which includes the message $V$ ``received'' under the simulation.
 
@@ -69,6 +116,10 @@
   for negligible functions $\eta_1$ and $\eta_2$.
   Therefore $L\in\BPP$.
 
-\item No answer.
+\item I don't know.
 \end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
 \end{document}
