@@ -1,5 +1,4 @@
 \documentclass{article}
-\usepackage{fullpage}
 \usepackage{amsmath}
 \usepackage{dsfont}
 \usepackage{hyperref}
@@ -33,12 +32,12 @@
 
   Suppose the following:
   \begin{itemize}
-  \item $G$ is the common input graph with edge set $E$ and vertex set $V$
-  \item $\sigma\in\{0,1\}$ is the random bit to which the verifier commits in its first round, and $c_\sigma$ is the commitment to that bit
-  \item $\pi$ is the random permutation of $V$ chosen by the prover in its first round of the original three-round \lang{HAMCYCLE} protocol
+  \item $G$ is the common input graph with edge set $E$ and vertex set $V$.
+  \item $\sigma\in\{0,1\}$ is the random bit to which the verifier commits in its first round, and $c_\sigma$ is the commitment to that bit.
+  \item $\pi$ is the random permutation of $V$ chosen by the prover in its first round of the original three-round \lang{HAMCYCLE} protocol.
   \end{itemize}
   The malicious prover we construct has two differences from the original honest prover protocol.
-  \begin{itemize}
+  \begin{enumerate}
   \item Where the protocol specifies that the prover sends an $n$-by-$n$ matrix of commitments to the graph isomorphic to $G$ under the permutation $\pi$, send instead a matrix $M$ whose entries are defined by
     \begin{displaymath}
       M_{\pi(i),\pi(j)} =
@@ -51,10 +50,10 @@
     Here the prover is using the same commitment scheme as the verifier; it creates a new commitment to 1 for all edges in $E$, but reuses the commitment $c_\sigma$ which it received from the verifier.
     This is allowed in the new protocol and not in the old protocol because the new protocol uses a computationally hiding commitment scheme whereas the old protocol required a perfectly hiding commitment scheme.
   \item
-    Where the protocol specifies that the prover opens the commitments to the entries in the matrix which correspond to edges in the supposed Hamiltonian cycle, send instead an opening to each of $(\tau(i),\tau(i+1))$, where $\tau$ is a random permutation on the vertices and $i\in\{1, 2, \ldots, |V|\}$.
+    Where the protocol specifies that the prover opens the commitments to the entries in the matrix which correspond to edges in the supposed Hamiltonian cycle, instead choose a random permutation on the vertices $\tau$ and send $\left\{\left(\tau(i),\tau(i+1)\right)\,\middle|\,i\in\left\{1,2,\ldots,|V|\right\}\right\}$.
     The prover can open the entries where it placed 1s because it generated those commitments on its own.
-    The prover can open the entries where it placed $c_\sigma$ because the verifier has already sent the $open(\sigma)$ message to it.
-  \end{itemize}
+    The prover can open the entries where it placed $c_\sigma$ because the verifier has already sent the $open(\sigma)$ message to the prover.
+  \end{enumerate}
 
   First, we wish to show that this prover runs in time polynomial in the security parameter $n$ and $|V|$.
   The random permutations $\pi$ and $\tau$ can be generated in polynomial time with respect to $|V|$.
