@@ -2,6 +2,7 @@
 \usepackage{fullpage}
 \usepackage{amsmath}
 \usepackage{dsfont}
+\usepackage{hyperref}
 
 % new commands
 \newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
@@ -26,11 +27,15 @@
   In this case, the language is \lang{HAMCYCLE}, defined by $\left\{G \,|\, G\text{ has a Hamiltonian cycle}\right\}$.
 
   We will consider the new six-round protocol to be a modification of the seven-round protocol described by Rosen in \cite[Figure 2]{rosen}.
+  For simplicity we will change the protocol so that there is only one instance of the three-round Hamiltonian cycle instead of $n$ in parallel.
+  This means that the verifier commits to one bit $\sigma$ instead of committing to a vector of $n$ bits.
+  The analysis will be the same, because our malicious prover interacting with a single honest verifier forces it to accept with probability 1, so interacting with $n$ honest verifiers in parallel will not change this probability.
+
   Suppose the following:
   \begin{itemize}
   \item $G$ is the common input graph with edge set $E$ and vertex set $V$
-  \item $\sigma\in\{0,1\}$ is the random bit whose commitment is sent by the verifier in its first round
-  \item $\pi$ is the random permutation of $V$ chosen by the prover in its first round of the three-round \lang{HAMCYCLE} protocol
+  \item $\sigma\in\{0,1\}$ is the random bit to which the verifier commits in its first round, and $c_\sigma$ is the commitment to that bit
+  \item $\pi$ is the random permutation of $V$ chosen by the prover in its first round of the original three-round \lang{HAMCYCLE} protocol
   \end{itemize}
   The malicious prover we construct has two differences from the original honest prover protocol.
   \begin{itemize}
@@ -39,29 +44,37 @@
       M_{\pi(i),\pi(j)} =
       \begin{cases}
         comm(1) & \text{if } (i, j)\in E \\
-        comm(\sigma) & \text{if } (i, j)\notin E,
+        c_\sigma & \text{if } (i, j)\notin E,
       \end{cases}
     \end{displaymath}
-    where $comm$ is the commitment function of the computationally hiding commitment scheme.
-    Here the prover is using the same commitment scheme as the verifier.
+    for all $i, j\in V$, where $comm$ is the commitment function of the computationally hiding commitment scheme.
+    Here the prover is using the same commitment scheme as the verifier; it creates a new commitment to 1 for all edges in $E$, but reuses the commitment $c_\sigma$ which it received from the verifier.
     This is allowed in the new protocol and not in the old protocol because the new protocol uses a computationally hiding commitment scheme whereas the old protocol required a perfectly hiding commitment scheme.
-  \item Where the protocol specifies that the prover opens the commitments to the entries in the matrix which correspond to edges in the supposed Hamiltonian cycle, send instead an opening to each of $(\tau(i),\tau(i+1))$, where $\tau$ is a random permutation on the vertices and $i\in\{1, 2, \ldots, |V|\}$.
+  \item
+    Where the protocol specifies that the prover opens the commitments to the entries in the matrix which correspond to edges in the supposed Hamiltonian cycle, send instead an opening to each of $(\tau(i),\tau(i+1))$, where $\tau$ is a random permutation on the vertices and $i\in\{1, 2, \ldots, |V|\}$.
+    The prover can open the entries where it placed 1s because it generated those commitments on its own.
+    The prover can open the entries where it placed $c_\sigma$ because the verifier has already sent the $open(\sigma)$ message to it.
   \end{itemize}
 
-  We wish to show that if $G\notin\lang{HAMCYCLE}$, then the probability that $V$ accepts when interacting with the malicious prover described above is non-negligible.
+  First, we wish to show that this prover runs in time polynomial in the security parameter $n$ and $|V|$.
+  The random permutations $\pi$ and $\tau$ can be generated in polynomial time with respect to $|V|$.
+  Each commitment (and decommitment) can be performed in polynomial time, and there are $O(|V|^2)$ commitments to be made.
+  The runtime of the prover is therefore polynomial in $|V|$.
+
+  Next, we wish to show that if $G\notin\lang{HAMCYCLE}$, then the probability that $V$ accepts when interacting with the malicious prover described above is non-negligible.
   Suppose now that $G\notin\lang{HAMCYCLE}$, so $G$ does not have a Hamiltonian cycle, hence no graph isomorphic to $G$ has a Hamiltonian cycle and, in particular, neither does the graph induced by the permutation $\pi$.
 
   In the case that $\sigma=0$, the protocol specifies that the prover sends $\pi$ to the verifier and additionally opens each of the commitments in the matrix.
-  Since $comm(\sigma)=comm(0)$, the verifier now sees the matrix defined by $M_{\pi(i), \pi(j)}=1$ if and only if $(i, j)\in E$.
+  Since $c_\sigma$ is a commitment to 0, the verifier now sees the matrix defined by $M_{\pi(i), \pi(j)}=1$ if and only if $(i, j)\in E$, for all $i,j\in V$.
   This is exactly the adjacency matrix of the graph isomorphic to $G$ under the permutation $\pi$.
   The verifier itself now checks that the graph defined by this matrix is indeed isomorphic to the common input graph $G$ under the permutation $\pi$.
   Since it is, the verifier accepts with probability 1.
 
   In the case that $\sigma=1$, the protocol specifies that the prover should open the commitments to each entry in the matrix $M_{\pi(i), \pi(j)}$ where $(i, j)$ is an edge in the supposed Hamiltonian cycle.
-  Since $comm(\sigma)=comm(1)$, the matrix $M_{\pi(i), \pi(j)}$ is now $\mathds{1}\otimes\mathds{1}$, the all-ones matrix.
+  Since $c_\sigma$ is a commitment to 1, the matrix $M_{\pi(i), \pi(j)}$ is an entry-wise commitment to $\mathds{1}\otimes\mathds{1}$, the all-ones matrix.
   The verifier now checks that all opened entries in the matrix are 1s (they are with probability 1) and that they form a cycle of length $n$ (they do with probability 1, since the malicious prover opened the ``edges'' between a random permutation of vertices $\tau$).
 
-  Since $G\notin\lang{HAMCYCLE}$ but the verifier accepts with probability 1 when interacting with this prover, this protocol is not computationally sound.
+  Since $G\notin\lang{HAMCYCLE}$ but the verifier accepts with probability 1 when interacting with this polynomial time prover, this protocol is not computationally sound.
 
 \item
   In this problem, we assume that the simulator $S$ outputs the view of $V$, which includes the message $V$ ``received'' under the simulation.
