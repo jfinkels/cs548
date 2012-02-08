@@ -1,0 +1,61 @@
+\documentclass[draft]{article}
+
+% new commands
+\newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
+\newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
+\newcommand{\lang}[1]{{\ensuremath{\mathsf{#1}}}}
+\newcommand{\BPP}{\class{BPP}}
+\newcommand{\NP}{\class{NP}}
+
+% author, date, and title
+\author{Jef{}frey~Finkelstein}
+\date{16 February 2012}
+\title{CS548 problem set 3}
+
+\begin{document}
+\maketitle
+\collaborators{}
+\begin{enumerate}
+\item
+  We wish to show that if the basic non-interactive zero knowledge protocol of Feige and Shamir is a two-time non-interactive zero knowledge protocol, then $\lang{HAMCYCLE}\in\BPP$ and hence $\NP\subseteq\BPP$.
+
+  In the basic non-interactive zero knowledge protocol of Feige and Shamir for \lang{HAMCYCLE}, the output of the simulator $S$ includes a pair of injective functions from the vertices of the common input graph $G$ to the rows and columns of the Hamiltonian submatrix of the common reference string.
+  We construct a $\BPP$ algorithm which runs the simulator $S$ two times (simulating the prover using the same common reference string twice) to decide whether two different graphs have Hamiltonian cycles.
+  We use the two pairs of injective functions which $S$ outputs to construct an isomorphism from a graph with a known Hamiltonian cycle to a subgraph of the original input graph $G$.
+
+  Suppose the following:
+  \begin{itemize}
+  \item The common input for the protocol is a graph $G$ with vertex set $V$ and edge set $E$.
+    Let $C_G$ be the Hamiltonian cycle in $G$ (if it exists).
+  \item $C_n$ is the \emph{cycle graph} on $n$ vertices, defined by
+    \begin{displaymath}
+      C_n=\left(\{1, 2, \ldots, n\}, \left\{(i, i\bmod{n} + 1)\,\middle|\, i\in \{1, 2, \ldots, n\}\right\}\right).
+    \end{displaymath}
+  \item The prover uses the same common reference string $M$ over two instances of the protocol (with two common input graphs).
+  \item $H$ is the Hamiltonian submatrix of the common reference string $M$ and $C_H$ is the corresponding Hamiltonian cycle (if $H$ exists in $M$).
+  \item The prover provides a certificate given by a pair of injective functions $(\pi_1, \pi_2)$, where $(u, v)\in C_G$ implies $(\pi_1(u), \pi_2(v))\in C_H$.
+  \end{itemize}
+  Construct the algorithm $A$ as follows on input $G$:
+  \begin{enumerate}
+  \item Run $S$ on $G$ to get $(\phi_1, \phi_2)$, a pair of injective functions describing a mapping from $C_G$ to $C_H$.
+  \item Run $S$ on $C_n$ to get $(\psi_1, \psi_2)$, a pair of injective functions describing a mapping from $C_n$ to $C_H$.
+  \item
+    Let $(\Phi_1, \Phi_2)=(\phi_1^{-1}\circ\psi_1, \phi_2^{-1}\circ\psi_2)$.
+    Check that $(\Phi_1, \Phi_2)$, a pair of injective functions describing a mapping from $C_n$ to $G$, describes a Hamiltonian cycle in $G$.
+    Specifically, accept if and only if
+    \begin{displaymath}
+      \left\{(\Phi_1(i), \Phi_2(i \bmod{n} + 1)) \,\middle|\, i \in \{1, 2, \ldots, n\}\right\}\subseteq E.
+    \end{displaymath}
+  \end{enumerate}
+  We claim that $A$ runs in probabilistic polynomial time.
+  The running time of the first two steps of $A$ is polynomial in the size of the graph $G$ because $S$ is a probabilistic polynomial time machine.
+  Computing the images under $(\Phi_1, \Phi_2)$ of $1$ through $n$ can be performed in polynomial time.
+  Checking that each pair $(\Phi_1(i), \Phi_2(i \bmod{n} + 1))$ is in $E$ can be done in polynomial time.
+  Since each step of the algorithm can be performed in probabilistic polynomial time and there are a constant number of steps, the algorithm $A$ runs in probabilistic polynomial time.
+  It remains to bound the error probabilities of $A$.
+
+  Suppose $G\in\lang{HAMCYCLE}$, so $G$ has a Hamiltonian cycle.
+\item I don't know.
+\item I don't know.
+\end{enumerate}
+\end{document}
