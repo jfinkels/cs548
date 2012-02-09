@@ -1,4 +1,5 @@
 \documentclass[draft]{article}
+\usepackage{amsmath}
 
 % new commands
 \newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
@@ -6,6 +7,7 @@
 \newcommand{\lang}[1]{{\ensuremath{\mathsf{#1}}}}
 \newcommand{\BPP}{\class{BPP}}
 \newcommand{\NP}{\class{NP}}
+\newcommand{\cid}{\overset{c}{\simeq}}
 \renewcommand{\pmod}[1]{\,(\bmod{\,#1})}
 
 % author, date, and title
@@ -45,6 +47,10 @@
       \left\{(\Phi_1(i), \Phi_2(i \pmod{n} + 1)) \,\middle|\, i \in \{1, 2, \ldots, n\}\right\}\subseteq E.
     \end{displaymath}
   \end{enumerate}
+  Note that since $\phi_1$ and $\psi_1$ are both injective and both map $n$ vertices onto the $n$ rows of $H$, $\phi_1^{-1}\circ\psi_1$ is an injective mapping from the vertices of $C_n$ to the vertices of $G$.
+  The same reasoning applies to $\phi_2^{-1}\circ\psi_2$ and the columns of $H$.
+  These mappings compose (with high probability) because $S$ simulates (with high probability) the prover using the same common reference string twice.
+
   We claim that $A$ runs in probabilistic polynomial time.
   The running time of the first two steps of $A$ is polynomial in the size of the graph $G$ because $S$ is a probabilistic polynomial time machine.
   Computing the images under $(\Phi_1, \Phi_2)$ of $1$ through $n$ can be performed in polynomial time.
@@ -52,7 +58,30 @@
   Since each step of the algorithm can be performed in probabilistic polynomial time and there are a constant number of steps, the algorithm $A$ runs in probabilistic polynomial time.
   It remains to bound the error probabilities of $A$.
 
-  Suppose $G\in\lang{HAMCYCLE}$, so $G$ has a Hamiltonian cycle.
+  First suppose that $G\in\lang{HAMCYCLE}$, so $G$ has a Hamiltonian cycle.
+  $C_n\in\lang{HAMCYCLE}$ as well.
+  Let $(\pi_1, \pi_2)$ and $(\sigma_1, \sigma_2)$ be the pairs of injective functions describing a mapping from $C_G$ to $C_H$ and $C_n$ to $C_H$, respectively, with high probability which are output by the $(P, V)$ protocol when run with common input $G$ and $C_n$, respectively.
+  Suppose $(\phi_1, \phi_2)$ and $(\psi_1, \psi_2)$ are outputs of $S$ as described in the algorithm $A$.
+  By the zero-knowledge property of the Feige--Shamir protocol, $(\pi_1, \pi_2)\cid (\phi_1, \phi_2)$ and $(\sigma_1, \sigma_2)\cid(\psi_1, \psi_2)$.
+  Now $(\pi_1^{-1}\circ\sigma_1, \pi_2^{-1}\circ\sigma_2)$ and $(\phi_1^{-1}\circ\psi_1, \phi_2^{-1}\circ\psi_2)$ are pairs of injective functions, both mapping $C_n$ to $C_G$ with high probability (and the mappings compose because they each have domain and range of size $n$), and further $(\pi_1^{-1}\circ\sigma_1, \pi_2^{-1}\circ\sigma_2) \cid (\phi_1^{-1}\circ\psi_1, \phi_2^{-1}\circ\psi_2)$.
+
+  We want to show that $\Pr[S\text{ accepts}]\geq 1-\eta(m)$ where $\eta$ is a negligible function and $m$ is the security parameter.
+  For brevity, let $X$ be the event ``$(\phi_1^{-1}\circ\psi_1, \phi_2^{-1}\circ\psi_2)$ describes a cycle in $G$'' (so $\Pr[S\text{ accepts}]=\Pr[X]$) and $Y$ be the event ``$(\pi_1^{-1}\circ\psi_1, \pi_2^{-1}\circ\psi_2)$ describes a cycle in $G$''.
+  Since $X\cid Y$ by the last sentence of the previous paragraph and since $Pr[Y]\geq 1-\nu(m)$ for some negligible function $\nu$ by the completeness of the $(P, V)$ protocol, we have
+  \begin{align*}
+    & \left|\Pr[X] - \Pr[Y]\right| \leq \nu(m) \\
+    \rightarrow & \Pr[X] \geq \Pr[Y] - \nu(m) \\
+    \rightarrow & \Pr[X] \geq 1 - \eta(m) - \nu(m) \\
+    \rightarrow & \Pr[X] \geq 1 - (\eta(m) + \nu(m))
+  \end{align*}
+  where $\nu$ is some negligible function which comes from the computational indistinguishability of the events $X$ and $Y$.
+  Since the sum of two negligible functions is itself a negligible function, $\Pr[X]$ is bounded below by $1-\kappa(n)$ where $\kappa(n)$ is a negligible function.
+  Event $X$ occurs exactly when algorithm $A$ accepts, so $A$ accepts with high probability.
+
+  Suppose now that $G\notin\lang{HAMCYCLE}$, so no permutation of the vertices of $G$ is a Hamiltonian cycle.
+  We wish to show that algorithm $A$ accepts with low probability.
+  We will assume that $A$ accepts with non-negligible probability and produce a contradiction.
+
 \item I don't know.
 \item I don't know.
 \end{enumerate}
