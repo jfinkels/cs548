@@ -6,6 +6,7 @@
 \newcommand{\lang}[1]{{\ensuremath{\mathsf{#1}}}}
 \newcommand{\BPP}{\class{BPP}}
 \newcommand{\NP}{\class{NP}}
+\renewcommand{\pmod}[1]{\,(\bmod{\,#1})}
 
 % author, date, and title
 \author{Jef{}frey~Finkelstein}
@@ -27,10 +28,7 @@
   \begin{itemize}
   \item The common input for the protocol is a graph $G$ with vertex set $V$ and edge set $E$.
     Let $C_G$ be the Hamiltonian cycle in $G$ (if it exists).
-  \item $C_n$ is the \emph{cycle graph} on $n$ vertices, defined by
-    \begin{displaymath}
-      C_n=\left(\{1, 2, \ldots, n\}, \left\{(i, i\bmod{n} + 1)\,\middle|\, i\in \{1, 2, \ldots, n\}\right\}\right).
-    \end{displaymath}
+  \item $C_n$ is the \emph{cycle graph} on $n$ vertices, defined by vertex set $\{1, 2, \ldots, n\}$ and edge set $\left\{(i, i \pmod{n} + 1)\,\middle|\, i\in \{1, 2, \ldots, n\}\right\}$.
   \item The prover uses the same common reference string $M$ over two instances of the protocol (with two common input graphs).
   \item $H$ is the Hamiltonian submatrix of the common reference string $M$ and $C_H$ is the corresponding Hamiltonian cycle (if $H$ exists in $M$).
   \item The prover provides a certificate given by a pair of injective functions $(\pi_1, \pi_2)$, where $(u, v)\in C_G$ implies $(\pi_1(u), \pi_2(v))\in C_H$.
@@ -44,7 +42,7 @@
     Check that $(\Phi_1, \Phi_2)$, a pair of injective functions describing a mapping from $C_n$ to $G$, describes a Hamiltonian cycle in $G$.
     Specifically, accept if and only if
     \begin{displaymath}
-      \left\{(\Phi_1(i), \Phi_2(i \bmod{n} + 1)) \,\middle|\, i \in \{1, 2, \ldots, n\}\right\}\subseteq E.
+      \left\{(\Phi_1(i), \Phi_2(i \pmod{n} + 1)) \,\middle|\, i \in \{1, 2, \ldots, n\}\right\}\subseteq E.
     \end{displaymath}
   \end{enumerate}
   We claim that $A$ runs in probabilistic polynomial time.
