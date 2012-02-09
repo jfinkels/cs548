@@ -35,21 +35,28 @@
   \item $H$ is the Hamiltonian submatrix of the common reference string $M$ and $C_H$ is the corresponding Hamiltonian cycle (if $H$ exists in $M$).
   \item The prover provides a certificate given by a pair of injective functions $(\pi_1, \pi_2)$, where $(u, v)\in C_G$ implies $(\pi_1(u), \pi_2(v))\in C_H$.
   \end{itemize}
-  Construct the algorithm $A$ as follows on input $G$:
+  We will construct two algorithms, a helper function $A'$ and a main algorithm $A$ which uses $A'$ as a subroutine, in order to simplify our analysis later.
+  Construct the function $A'$ as follows on input $G$:
   \begin{enumerate}
-  \item Run $S$ on $G$ to get $(\phi_1, \phi_2)$, a pair of injective functions describing a mapping from $C_G$ to $C_H$.
-  \item Run $S$ on $C_n$ to get $(\psi_1, \psi_2)$, a pair of injective functions describing a mapping from $C_n$ to $C_H$.
-  \item
-    Let $(\Phi_1, \Phi_2)=(\phi_1^{-1}\circ\psi_1, \phi_2^{-1}\circ\psi_2)$.
-    Check that $(\Phi_1, \Phi_2)$, a pair of injective functions describing a mapping from $C_n$ to $G$, describes a Hamiltonian cycle in $G$.
+  \item Run $S$ on $G$ to get $T_G$, the transcript which results from the simulation, including $(\phi_1, \phi_2)$, a pair of injective functions describing a mapping from $C_G$ to $C_H$.
+  \item Run $S$ on $C_n$ to get $T_{C_n}$, the transcript which results from the simulation, including $(\psi_1, \psi_2)$, a pair of injective functions describing a mapping from $C_n$ to $C_H$.
+  \item Output $T_G$ and $T_{C_n}$ along with $(\Phi_1, \Phi_2)$, defined to be $(\phi_1^{-1}\circ\psi_1, \phi_2^{-1}\circ\psi_2)$.
+  \end{enumerate}
+  Note that the output of this function is a pair of injective functions describing a mapping from $C_n$ to $G$.
+  Since $\phi_1$ and $\psi_1$ are both injective and both map $n$ vertices onto the $n$ rows of $H$, $\phi_1^{-1}\circ\psi_1$ is an injective mapping from the vertices of $C_n$ to the vertices of $G$.
+  The same reasoning applies to $\phi_2^{-1}\circ\psi_2$ and the columns of $H$.
+  These mappings compose (with high probability) because $S$ simulates (with high probability) the prover using the same common reference string twice.
+
+  Construct the decision algorithm $A$ as follows on input $G$:
+  \begin{enumerate}
+  \item Run algorithm $A'$ on input $G$ to yield $(\Phi_1, \Phi_2)$ (ignore the rest of the transcripts).
+  \item 
+    Check that $(\Phi_1, \Phi_2)$ describes a Hamiltonian cycle in $G$.
     Specifically, accept if and only if
     \begin{displaymath}
       \left\{(\Phi_1(i), \Phi_2(i \pmod{n} + 1)) \,\middle|\, i \in \{1, 2, \ldots, n\}\right\}\subseteq E.
     \end{displaymath}
   \end{enumerate}
-  Note that since $\phi_1$ and $\psi_1$ are both injective and both map $n$ vertices onto the $n$ rows of $H$, $\phi_1^{-1}\circ\psi_1$ is an injective mapping from the vertices of $C_n$ to the vertices of $G$.
-  The same reasoning applies to $\phi_2^{-1}\circ\psi_2$ and the columns of $H$.
-  These mappings compose (with high probability) because $S$ simulates (with high probability) the prover using the same common reference string twice.
 
   We claim that $A$ runs in probabilistic polynomial time.
   The running time of the first two steps of $A$ is polynomial in the size of the graph $G$ because $S$ is a probabilistic polynomial time machine.
@@ -61,7 +68,7 @@
   First suppose that $G\in\lang{HAMCYCLE}$, so $G$ has a Hamiltonian cycle.
   $C_n\in\lang{HAMCYCLE}$ as well.
   Let $(\pi_1, \pi_2)$ and $(\sigma_1, \sigma_2)$ be the pairs of injective functions describing a mapping from $C_G$ to $C_H$ and $C_n$ to $C_H$, respectively, with high probability which are output by the $(P, V)$ protocol when run with common input $G$ and $C_n$, respectively.
-  Suppose $(\phi_1, \phi_2)$ and $(\psi_1, \psi_2)$ are outputs of $S$ as described in the algorithm $A$.
+  Suppose $(\phi_1, \phi_2)$ and $(\psi_1, \psi_2)$ are outputs of $S$ as described in the function $A'$.
   By the zero-knowledge property of the Feige--Shamir protocol, $(\pi_1, \pi_2)\cid (\phi_1, \phi_2)$ and $(\sigma_1, \sigma_2)\cid(\psi_1, \psi_2)$.
   Now $(\pi_1^{-1}\circ\sigma_1, \pi_2^{-1}\circ\sigma_2)$ and $(\phi_1^{-1}\circ\psi_1, \phi_2^{-1}\circ\psi_2)$ are pairs of injective functions, both mapping $C_n$ to $C_G$ with high probability (and the mappings compose because they each have domain and range of size $n$), and further $(\pi_1^{-1}\circ\sigma_1, \pi_2^{-1}\circ\sigma_2) \cid (\phi_1^{-1}\circ\psi_1, \phi_2^{-1}\circ\psi_2)$.
 
@@ -80,7 +87,20 @@
 
   Suppose now that $G\notin\lang{HAMCYCLE}$, so no permutation of the vertices of $G$ is a Hamiltonian cycle.
   We wish to show that algorithm $A$ accepts with low probability.
-  We will assume that $A$ accepts with non-negligible probability and produce a contradiction.
+  Assume that $A$ accepts $G$ with non-negligible probability with the intention of producing a contradiction.
+  If $A$ accepts $G$ with non-negligible probability it follows from the construction of $A$ that $A'$ outputs a pair $(\Phi_1, \Phi_2)$ which defines a mapping from $C_n$ to a ``cycle'' in $G$ with non-negligible probability.
+  Since $(\psi_1, \psi_2)$ describes a mapping from $C_n$ to $C_H$ correctly with high probability (because $C_n\in\lang{HAMPATH}$), the faulty part of this mapping is $(\phi_1^{-1}, \phi_2^{-1})$.
+  Hence $(\phi_1, \phi_2)$ is the certificate which will cause the verifier to accept with non-negligible probability.
+
+  We will construct a cheating prover which uses $A'$ to fool $V$ into accepting $G$ with non-negligible probability.
+  The prover proceeds as follows on input $G$:
+  \begin{enumerate}
+  \item
+    Run $A'$ to produce $T_G$, $T_{C_n}$, and $(\Phi_1, \Phi_2)$.
+  \item Forward the appropriate parts of $T_G$ to the verifier.
+  \end{enumerate}
+  Running the $(P, V)$ protocol with this cheating prover on input $G$ will cause the prover to send the certificate $(\phi_1, \phi_2)$.
+  As stated in the previous paragraph, the verifier will accept this string with non-negligible probability.
 
 \item I don't know.
 \item I don't know.
