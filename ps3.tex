@@ -103,6 +103,26 @@
   As stated in the previous paragraph, the verifier will accept this string with non-negligible probability.
 
 \item I don't know.
-\item I don't know.
+\item
+  The proof is by contradiction using a hybrid argument.
+  Assume $(P, V)$ is not a $k$-proof adaptive non-interactive witness indistinguishable protocol.
+  Therefore there exists a probabilistic polynomial time verifier $V^*$, an auxiliary input $z$, a negligible function $\eta$, and a sufficiently large $n$ such that $\Pr[b=b'] > \frac{1}{2} + \eta(n)$.
+  Define experiment $exp\mbox{-}k$ the instance of the game in which $b=1$ and $exp\mbox{-}0$ the instance of the game in which $b=0$.
+  Suppose each iteration of the loop in the game is numbered from $1$ up to $k$.
+  Construct intermediate hybrid experiments $exp\mbox{-}i$ in which the prover receives $w_0$ in each round up to and including round $i$ and $w_1$ in each round after round $i$, where $i\in\{0, 1, \ldots, k\}$.
+  (Note that when $i=0$, $exp\mbox{-}i$ corresponds to an instance of the game in which $b$ was chosen to be $0$, and when $i=k$, $exp\mbox{-}i$ corresponds to an instance of the game in which $b$ was chosen to be $1$.)
+
+  By a standard averaging argument, there exists an $i\in\{0,1,\ldots, k-1\}$ such that
+  \begin{displaymath}
+    \left{\big|}\Pr\left[V^*\text{ accepts in } exp\mbox{-}i\right] - \Pr\left[V^*\text{ accepts in } exp\mbox{-}(i+1)\right]\right{\big|} > \frac{\eta(n)}{k}.
+  \end{displaymath}
+  The only difference between $exp\mbox{-}i$ and $exp\mbox{-}(i+1)$ is that $V^*$ receives the output of $P(x, r, w_0)$ in the former and the output of $P(x, r, w_1)$ in the latter.
+  Now if $p_0=P(x, r, w_0)$ and $p_1=P(x, r, w_1)$, both occurring in round $i$, then
+  \begin{displaymath}
+    \left{\big|}\Pr\left[V^*(x, z, r, p_0)\text{ accepts}\right] - \Pr\left[V^*(x, z, r, p_1)\text{ accepts}\right]\right{\big|} > \frac{\eta(n)}{k}.
+  \end{displaymath}
+  Since $\frac{\eta(k)}{n}$ is a negligible function, $V^*$ can distinguish whether $P$ knows $w_0$ or $w_1$.
+  This is a contradiction with the hypothesis that $(P, V)$ is a $1$-proof adaptive non-interactive witness indistinguishable protocol.
+  Therefore we conclude that $(P, V)$ is a $k$-proof adaptive non-interactive witness indistinguishable protocol.
 \end{enumerate}
 \end{document}
