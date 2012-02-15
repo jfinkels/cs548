@@ -9,6 +9,8 @@
 \newcommand{\NP}{\class{NP}}
 \newcommand{\cid}{\overset{c}{\simeq}}
 \renewcommand{\pmod}[1]{\,(\bmod{\,#1})}
+\newcommand{\poly}{\textrm{poly}}
+\newcommand{\getr}{\overset{R}{\gets}}
 
 % author, date, and title
 \author{Jef{}frey~Finkelstein}
@@ -17,7 +19,7 @@
 
 \begin{document}
 \maketitle
-\collaborators{}
+\collaborators{Dimitris, Davide, Ben}
 \begin{enumerate}
 \item
   We wish to show that if the basic non-interactive zero knowledge protocol of Feige and Shamir is a two-time non-interactive zero knowledge protocol, then $\lang{HAMCYCLE}\in\BPP$ and hence $\NP\subseteq\BPP$.
@@ -31,7 +33,7 @@
   \item The common input for the protocol is a graph $G$ with vertex set $V$ and edge set $E$.
     Let $C_G$ be the Hamiltonian cycle in $G$ (if it exists).
   \item $C_n$ is the \emph{cycle graph} on $n$ vertices, defined by vertex set $\{1, 2, \ldots, n\}$ and edge set $\left\{(i, i \pmod{n} + 1)\,\middle|\, i\in \{1, 2, \ldots, n\}\right\}$.
-  \item The prover uses the same common reference string $M$ over two instances of the protocol (with two common input graphs).
+  \item The prover uses the same common reference string $M$ over two instances of the protocol (with two common input graphs), and the simulator simulates this reuse as well.
   \item $H$ is the Hamiltonian submatrix of the common reference string $M$ and $C_H$ is the corresponding Hamiltonian cycle (if $H$ exists in $M$).
   \item The prover provides a certificate given by a pair of injective functions $(\pi_1, \pi_2)$, where $(u, v)\in C_G$ implies $(\pi_1(u), \pi_2(v))\in C_H$.
   \end{itemize}
@@ -102,7 +104,40 @@
   Running the $(P, V)$ protocol with this cheating prover on input $G$ will cause the prover to send the certificate $(\phi_1, \phi_2)$.
   As stated in the previous paragraph, the verifier will accept this string with non-negligible probability.
 
-\item I don't know.
+\item
+  \begin{enumerate}
+  \item
+    Let $(Gen, Enc, Dec)$ be the CPA-secure encryption scheme with no decryption error and $(P, V)$ be the one-time adaptive non-interactive zero knowledge protocol, both as described in the problem.
+    Let $(P', V')$ be the protocol constructed using the encryption scheme and the $(P, V)$ protocol.
+    We must show completeness, soundness, the zero knowledge property, and the proof of knowledge property.
+    \begin{description}
+    \item[Completeness] \hfill \\
+      Suppose $x$ is in the language induced by the $\NP$ relation $R$, so there exists a $w$ with length polynomial in the length of $x$ such that $(x,w)\in R$.
+      $V'$ accepts when interacting with $P'$ if the simulated $(P, V)$ interaction accepts.
+      By the completeness property of the underlying $(P, V)$ protocol, $V$ accepts on common input $(x, e, c)$, common reference string $r$, and certificate sent by the prover $p$ with high probability if $((x, e, c), (w, \rho))\in R'$.
+      Since for an honest prover and verifier $((x, e, c), (w, \rho))\in R'$, it follows that $V$ will accept with high probability and hence $V'$ will also.
+    \item[Soundness] \hfill \\
+      The proof is by contradiction, reducing from the soundness of the underlying protocol.
+      Assume with the intention of producing a contradiction that the protocol $(P', V')$ is not computationally sound, so there exists a cheating prover $\tilde{P'}$ such that for all $x\notin L_R$,
+      \begin{displaymath}
+        \Pr_{r\getr\{0,1\}^{\poly(n)}}[(x, p)\gets\tilde{P'}(r); V'(r, x, p)=1]>\eta(n),
+      \end{displaymath}
+      for all negligible functions $\eta$.
+      Construct cheating prover $\tilde{P}$ as follows on common reference string $r$:
+      \begin{itemize}
+      \item Choose $r\getr\{0,1\}^n$ and $e\getr\{0,1\}^n$.
+      \item Run $\tilde{P'}$ on common input $x$ and common reference string $e\circ r$ to yield $(c, p)$.
+      \item Send to $V$ the (generated) common input $(x, e, c)$ and certificate $p$.
+      \end{itemize}
+
+      By the construction of $V$, $V$ accepts on common input $x$ and common reference string $e\circ r$ if and only if $V'$ accepts on common input $(x,e,c)$ and common reference string $r$.
+    \item[Zero knowledge] \hfill \\
+      I don't know.
+    \item[Proof of knowledge] \hfill \\
+      I don't know.
+    \end{description}
+  \item I don't know.
+  \end{enumerate}
 \item
   The proof is by contradiction using a hybrid argument.
   Assume $(P, V)$ is not a $k$-proof adaptive non-interactive witness indistinguishable protocol.
@@ -114,12 +149,12 @@
 
   By a standard averaging argument, there exists an $i\in\{0,1,\ldots, k-1\}$ such that
   \begin{displaymath}
-    \left{\big|}\Pr\left[V^*\text{ accepts in } exp\mbox{-}i\right] - \Pr\left[V^*\text{ accepts in } exp\mbox{-}(i+1)\right]\right{\big|} > \frac{\eta(n)}{k}.
+    \big|\Pr\left[V^*\text{ accepts in } exp\mbox{-}i\right] - \Pr\left[V^*\text{ accepts in } exp\mbox{-}(i+1)\right]\big| > \frac{\eta(n)}{k}.
   \end{displaymath}
   The only difference between $exp\mbox{-}i$ and $exp\mbox{-}(i+1)$ is that $V^*$ receives the output of $P(x, r, w_0)$ in the former and the output of $P(x, r, w_1)$ in the latter.
   Now if $p_0=P(x, r, w_0)$ and $p_1=P(x, r, w_1)$, both occurring in round $i$, then
   \begin{displaymath}
-    \left{\big|}\Pr\left[V^*(x, z, r, p_0)\text{ accepts}\right] - \Pr\left[V^*(x, z, r, p_1)\text{ accepts}\right]\right{\big|} > \frac{\eta(n)}{k}.
+    \big|\Pr\left[V^*(x, z, r, p_0)\text{ accepts}\right] - \Pr\left[V^*(x, z, r, p_1)\text{ accepts}\right]\big| > \frac{\eta(n)}{k}.
   \end{displaymath}
   Since $\frac{\eta(k)}{n}$ is a negligible function, $V^*$ can distinguish whether $P$ knows $w_0$ or $w_1$.
   This is a contradiction with the hypothesis that $(P, V)$ is a $1$-proof adaptive non-interactive witness indistinguishable protocol.
