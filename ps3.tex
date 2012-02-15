@@ -11,6 +11,9 @@
 \renewcommand{\pmod}[1]{\,(\bmod{\,#1})}
 \newcommand{\poly}{\textrm{poly}}
 \newcommand{\getr}{\overset{R}{\gets}}
+\newcommand{\getrsingle}{\getr\{0, 1\}}
+\newcommand{\getrn}{\getrsingle^n}
+\newcommand{\getrpoly}{\getrsingle^{poly(n)}}
 
 % author, date, and title
 \author{Jef{}frey~Finkelstein}
@@ -61,9 +64,9 @@
   \end{enumerate}
 
   We claim that $A$ runs in probabilistic polynomial time.
-  The running time of the first two steps of $A$ is polynomial in the size of the graph $G$ because $S$ is a probabilistic polynomial time machine.
-  Computing the images under $(\Phi_1, \Phi_2)$ of $1$ through $n$ can be performed in polynomial time.
-  Checking that each pair $(\Phi_1(i), \Phi_2(i \bmod{n} + 1))$ is in $E$ can be done in polynomial time.
+  The running time of the first two steps of $A'$ is polynomial in the size of the graph $G$ because $S$ is a probabilistic polynomial time machine.
+  In the third step of $A'$, computing the images under $(\Phi_1, \Phi_2)$ of the integers $1$ through $n$ can be performed in polynomial time.
+  In $A$, checking that each pair $(\Phi_1(i), \Phi_2(i \bmod{n} + 1))$ is in $E$ can be done in polynomial time.
   Since each step of the algorithm can be performed in probabilistic polynomial time and there are a constant number of steps, the algorithm $A$ runs in probabilistic polynomial time.
   It remains to bound the error probabilities of $A$.
 
@@ -108,31 +111,41 @@
   \begin{enumerate}
   \item
     Let $(Gen, Enc, Dec)$ be the CPA-secure encryption scheme with no decryption error and $(P, V)$ be the one-time adaptive non-interactive zero knowledge protocol, both as described in the problem.
-    Let $(P', V')$ be the protocol constructed using the encryption scheme and the $(P, V)$ protocol.
+    Let $(P_R, V_R)$ be the protocol constructed using the encryption scheme and the $(P, V)$ protocol.
     We must show completeness, soundness, the zero knowledge property, and the proof of knowledge property.
     \begin{description}
     \item[Completeness] \hfill \\
       Suppose $x$ is in the language induced by the $\NP$ relation $R$, so there exists a $w$ with length polynomial in the length of $x$ such that $(x,w)\in R$.
-      $V'$ accepts when interacting with $P'$ if the simulated $(P, V)$ interaction accepts.
+      $V_R$ accepts when interacting with $P_R$ if the simulated $(P, V)$ interaction accepts.
       By the completeness property of the underlying $(P, V)$ protocol, $V$ accepts on common input $(x, e, c)$, common reference string $r$, and certificate sent by the prover $p$ with high probability if $((x, e, c), (w, \rho))\in R'$.
-      Since for an honest prover and verifier $((x, e, c), (w, \rho))\in R'$, it follows that $V$ will accept with high probability and hence $V'$ will also.
+      Since for an honest prover and verifier $((x, e, c), (w, \rho))\in R'$, it follows that $V$ will accept with high probability and hence $V_R$ will also.
     \item[Soundness] \hfill \\
       The proof is by contradiction, reducing from the soundness of the underlying protocol.
-      Assume with the intention of producing a contradiction that the protocol $(P', V')$ is not computationally sound, so there exists a cheating prover $\tilde{P'}$ such that for all $x\notin L_R$,
+      Assume with the intention of producing a contradiction that the protocol $(P_R, V_R)$ is not computationally sound, so there exists a cheating prover $P^*_R$ such that for all $x\notin L_R$,
       \begin{displaymath}
-        \Pr_{r\getr\{0,1\}^{\poly(n)}}[(x, p)\gets\tilde{P'}(r); V'(r, x, p)=1]>\eta(n),
+        \Pr\left[r\getr\{0,1\}^{\poly(n)}, (x, p)\gets P^*_R(r); V_R(x, r, p)=1\right]>\eta(n),
       \end{displaymath}
       for all negligible functions $\eta$.
-      Construct cheating prover $\tilde{P}$ as follows on common reference string $r$:
+      Construct cheating prover $P^*$ as follows on common reference string $r$:
       \begin{itemize}
-      \item Choose $r\getr\{0,1\}^n$ and $e\getr\{0,1\}^n$.
-      \item Run $\tilde{P'}$ on common input $x$ and common reference string $e\circ r$ to yield $(c, p)$.
+      \item Choose $x\getrn$ and $e\getrpoly$.
+      \item Run $P^*_R$ on common input $x$ and common reference string $e\circ r$ to yield $(c, p)$.
       \item Send to $V$ the (generated) common input $(x, e, c)$ and certificate $p$.
       \end{itemize}
 
-      By the construction of $V$, $V$ accepts on common input $x$ and common reference string $e\circ r$ if and only if $V'$ accepts on common input $(x,e,c)$ and common reference string $r$.
+      By the construction of $V$, $V$ accepts on common input $x$ and common reference string $e\circ r$ if and only if $V_R$ accepts on common input $(x,e,c)$ and common reference string $r$.
+      Therefore,
+      \small{%
+         \begin{align*}%
+         & \Pr\left[r\getrpoly, ((x, e, c), p)\gets P^*(r); V((x, e, c), r, p)=1\right] \\
+         = & \Pr\left[e\circ r\getrpoly, (c, p)\gets P^*_R(r, x); V_R((x, e, c), r, p)=1\right],
+       \end{align*}%
+      }%
+      which is greater than negligible, from above.
+      This is a contradiction with the hypothesis that $(P, V)$ is a sound proof system.
+      Therefore $(P_R, V_R)$ is sound.
     \item[Zero knowledge] \hfill \\
-      I don't know.
+      Since $(P, V)$ is a zero-knowledge protocol, there exists a simulator $S$ for this protocol such that $[x, r, P(x, r)]\cid[S(x)]$.
     \item[Proof of knowledge] \hfill \\
       I don't know.
     \end{description}
@@ -142,8 +155,8 @@
   The proof is by contradiction using a hybrid argument.
   Assume $(P, V)$ is not a $k$-proof adaptive non-interactive witness indistinguishable protocol.
   Therefore there exists a probabilistic polynomial time verifier $V^*$, an auxiliary input $z$, a negligible function $\eta$, and a sufficiently large $n$ such that $\Pr[b=b'] > \frac{1}{2} + \eta(n)$.
-  Define experiment $exp\mbox{-}k$ the instance of the game in which $b=1$ and $exp\mbox{-}0$ the instance of the game in which $b=0$.
   Suppose each iteration of the loop in the game is numbered from $1$ up to $k$.
+  Define experiment $exp\mbox{-}k$ the instance of the game in which $b=1$ and $exp\mbox{-}0$ the instance of the game in which $b=0$.
   Construct intermediate hybrid experiments $exp\mbox{-}i$ in which the prover receives $w_0$ in each round up to and including round $i$ and $w_1$ in each round after round $i$, where $i\in\{0, 1, \ldots, k\}$.
   (Note that when $i=0$, $exp\mbox{-}i$ corresponds to an instance of the game in which $b$ was chosen to be $0$, and when $i=k$, $exp\mbox{-}i$ corresponds to an instance of the game in which $b$ was chosen to be $1$.)
 
@@ -151,11 +164,25 @@
   \begin{displaymath}
     \big|\Pr\left[V^*\text{ accepts in } exp\mbox{-}i\right] - \Pr\left[V^*\text{ accepts in } exp\mbox{-}(i+1)\right]\big| > \frac{\eta(n)}{k}.
   \end{displaymath}
-  The only difference between $exp\mbox{-}i$ and $exp\mbox{-}(i+1)$ is that $V^*$ receives the output of $P(x, r, w_0)$ in the former and the output of $P(x, r, w_1)$ in the latter.
-  Now if $p_0=P(x, r, w_0)$ and $p_1=P(x, r, w_1)$, both occurring in round $i$, then
-  \begin{displaymath}
-    \big|\Pr\left[V^*(x, z, r, p_0)\text{ accepts}\right] - \Pr\left[V^*(x, z, r, p_1)\text{ accepts}\right]\big| > \frac{\eta(n)}{k}.
-  \end{displaymath}
+  The only difference between $exp\mbox{-}i$ and $exp\mbox{-}(i+1)$ is that in round $i$, $V^*$ receives the output of $P(x, r, w_0)$ in the former and the output of $P(x, r, w_1)$ in the latter.
+
+  Construct non-uniform cheating verifier $\tilde{V}$ which will break the 1-round game as follows on auxiliary input $i$:
+  \begin{enumerate}
+  \item Receive $r\getr\{0,1\}^{poly(n)}$ and $b\getr\{0, 1\}$.
+  \item Simulate the interaction of the $k$-round verifier $V^*$ and the $k$-round prover $P$ with initial randomness $r$ and bit $0$ for $i - 1$ rounds.
+  \item On the $i$th round, give $r$ and $b$ to $V^*$, which yields $(x, w_0, w_1)$.
+  \item Forward $(x, w_0, w_1)$ to the external 1-round prover $P$, which yields $p=P(x, r, w_b)$.
+  \item Forward $p$ to the internal $k$-round verifier $V^*$.
+  \item Simulate the interaction of $V^*$ and $P$ with initial randomness $r$ and bit $1$ for the remaining $k - i$ rounds.
+  \item Output whatever bit $V^*$ outputs after $k$ rounds.
+  \end{enumerate}
+
+  Now we have
+  \begin{align*}
+    & \left|\Pr\left[\tilde{V} \text{ wins} \,\middle|\, b=0\right] - \Pr\left[\tilde{V} \text{ wins} \,\middle|\, b=1\right]\right| \\
+    = & \left|\Pr\left[V^*\text{ accepts in } exp\mbox{-}i\right] - \Pr\left[V^*\text{ accepts in } exp\mbox{-}(i+1)\right]\right| > \frac{\eta(n)}{k}.
+  \end{align*}
+  This is equivalent to $\Pr[\tilde{V}\text{ outputs } b' \text{ such that } b'=b] > \frac{\eta(k)}{n}$.
   Since $\frac{\eta(k)}{n}$ is a negligible function, $V^*$ can distinguish whether $P$ knows $w_0$ or $w_1$.
   This is a contradiction with the hypothesis that $(P, V)$ is a $1$-proof adaptive non-interactive witness indistinguishable protocol.
   Therefore we conclude that $(P, V)$ is a $k$-proof adaptive non-interactive witness indistinguishable protocol.
