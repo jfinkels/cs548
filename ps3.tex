@@ -145,7 +145,20 @@
       This is a contradiction with the hypothesis that $(P, V)$ is a sound proof system.
       Therefore $(P_R, V_R)$ is sound.
     \item[Zero knowledge] \hfill \\
-      Since $(P, V)$ is a zero-knowledge protocol, there exists a simulator $S$ for this protocol such that $[x, r, P(x, r)]\cid[S(x)]$.
+      We will show that since $(P, V)$ is an adaptive zero-knowledge protocol, $(P_R, V_R)$ is an adaptive zero-knowledge protocol, which implies $(P_R, V_R)$ is a non-adaptive zero-knowledge protocol.
+      Let $S$ be the adaptive simulator for the $(P, V)$ protocol.
+      Construct $S_R$, the adaptive simulator for the $(P_R, V_R)$ protocol, which proceeds as follows on input $1^n$:
+      \begin{enumerate}
+      \item Choose $e\getrpoly$ and $\rho\getrpoly$.
+      \item Run $S(1^n)$ to yield $r$.
+      \item Send $e\circ r$ to the verifier.
+      \item
+        Receive $(x, w)$ from the verifier.
+        Let $c=Enc_e(w, \rho)$.
+      \item Provide $(x, e, c)$ to $S$, which yields $p$.
+      \item Send $(c, p)$ to the verifier.
+      \end{enumerate}
+      We claim that for all adversarial verifiers $V_R^*$, the verifier cannot distinguish between interacting with the prover $P_R$ and interacting with the simulator $S$.
     \item[Proof of knowledge] \hfill \\
       I don't know.
     \end{description}
