@@ -158,11 +158,46 @@
       \item Provide $(x, e, c)$ to $S$, which yields $p$.
       \item Send $(c, p)$ to the verifier.
       \end{enumerate}
-      We claim that for all adversarial verifiers $V_R^*$, the verifier cannot distinguish between interacting with the prover $P_R$ and interacting with the simulator $S$.
+      We claim that for all adversarial verifiers $V_R^*$, the verifier cannot distinguish between interacting with the prover $P_R$ and interacting with the simulator $S_R$.
     \item[Proof of knowledge] \hfill \\
-      I don't know.
+      Let $P_R^*$ be a cheating prover for the $(P_R, V_R)$ protocol.
+      Construct extractor $E$ as follows on input $x$ and auxiliary input $z$:
+      \begin{enumerate}
+      \item Run $G(1^n)$ to yield encryption key $e$ and decryption key $d$.
+      \item Choose $r\getrpoly$.
+      \item
+        Run $P_R^*$ on input $x$, auxiliary input $z$, and common reference string $e\circ r$.
+        It outputs $c$ and $p$.
+      \item Let $w=Dec_d(c)$, where $D_d$ is the decryption algorithm with decryption key $d$.
+      \item Output $(e\circ r, (c, p), w)$.
+      \end{enumerate}
+      We claim this extractor satisfies the two properties for a proof of knowledge extractor.
+
+      First, since $E$ chooses $e\circ r$ randomly and provides them directly to $P^*$, and since $E$ simply outputs $(c, p)$, the result of running $P_R^*$ on input $x$, $z$, and $e\circ r$, we have
+      \begin{displaymath}
+        (e\circ r, (c, p))\cid [r\getrpoly, (c, p)=P_R^*(x, e\circ r, z); (e\circ r, (c, p))].
+      \end{displaymath}
+      Second, we need either $\Pr[V(x, e\circ r, (c, p))]$ or $\Pr[(x, w)\in R]$ to be at most negligible in $n$, which implies that the intersection of these two events is negligible in $n$.
+      In the case that the prover $P_R^*$ is an honest prover, then the latter probability will be negligible, since the witness $w$ is the error-less decryption of $c$, so the probability that $(x, w)\notin R$ is negligible.
+      In the case that the prover $P_R^*$ is a cheating prover, then the former probability will be negligible, since the probability that $V(x, e\circ r, (c, p))$ accepts is negligible by the soundness of the $(P_R, V_R)$ protocol.
+
+      We have shown that this extractor satisfies the two conditions necessary for the proof of knowledge property.
     \end{description}
-  \item I don't know.
+  \item
+    Let $(G, E, D)$ be a CPA-secure encryption scheme with no decryption error.
+    Construct a new encryption scheme $(G, E, D')$ where $D'$ is defined as
+    \begin{displaymath}
+      D'_d(c)=
+      \begin{cases}
+        \bot & \text{if } D_d(c) = x \\
+        D_d(c) & \text{otherwise}
+      \end{cases}
+    \end{displaymath}
+    where $x$ is a single fixed string.
+    This is still CPA-secure (if not, we could break the underlying CPA-secure encryption scheme with non-negligible probability), but now the probability of a bad decryption of strings of length $n=|x|$ is $\frac{1}{2^n}$, which is negligible.
+    There now exists an $x$ such that if $(e\circ r, (c, p), w)\gets E(x, z)$, then $\Pr[V(x, e\circ r, (c, p))=1 \land (x, w)\notin R]$ is non-negligible.
+    This is because $(x, w)\notin R$ with non-negligible probability (since $w=\bot$) but $V$ still would have accepted $(x, e\circ r, (c, p))$ with high probability.
+    This violates the second condition for the proof of knowledge property, so the $(P_R, V_R)$ protocol is not a proof of knowledge.
   \end{enumerate}
 \item
   The proof is by contradiction using a hybrid argument.
@@ -175,7 +210,7 @@
 
   By a standard averaging argument, there exists an $i\in\{0,1,\ldots, k-1\}$ such that
   \begin{displaymath}
-    \big|\Pr\left[V^*\text{ accepts in } exp\mbox{-}i\right] - \Pr\left[V^*\text{ accepts in } exp\mbox{-}(i+1)\right]\big| > \frac{\eta(n)}{k}.
+    \left|\Pr\left[V^*\text{ accepts in } exp\mbox{-}i\right] - \Pr\left[V^*\text{ accepts in } exp\mbox{-}(i+1)\right]\right| > \frac{\eta(n)}{k}.
   \end{displaymath}
   The only difference between $exp\mbox{-}i$ and $exp\mbox{-}(i+1)$ is that in round $i$, $V^*$ receives the output of $P(x, r, w_0)$ in the former and the output of $P(x, r, w_1)$ in the latter.
 
