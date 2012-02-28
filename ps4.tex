@@ -1,0 +1,59 @@
+\documentclass[draft]{article}
+\usepackage{amsmath}
+
+% new commands
+\newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
+\newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
+\newcommand{\lang}[1]{{\ensuremath{\mathsf{#1}}}}
+\newcommand{\BPP}{\class{BPP}}
+\newcommand{\NP}{\class{NP}}
+\newcommand{\cid}{\overset{c}{\simeq}}
+\renewcommand{\pmod}[1]{\,(\bmod{\,#1})}
+\newcommand{\poly}{\textrm{poly}}
+\newcommand{\getr}{\overset{R}{\gets}}
+\newcommand{\getrsingle}{\getr\{0, 1\}}
+\newcommand{\getrn}{\getrsingle^n}
+\newcommand{\getrpoly}{\getrsingle^{poly(n)}}
+
+% author, date, and title
+\author{Jef{}frey~Finkelstein}
+\date{1 March 2012}
+\title{CS548 problem set 4}
+
+\begin{document}
+\maketitle
+\collaborators{}
+\begin{enumerate}
+\item
+  We wish to show that simulation soundness implies adaptive soundness.
+  Assume with the intention of producing a contradiction that $(P, V)$ is not adaptively sound.
+  Hence there exists a cheating prover $P^*$ such that
+  \begin{equation}\label{eqn:adaptivesoundness}
+    \Pr\left[r\getrpoly, (x, p)\gets P^*(r); x\notin L_R \land V(x, r, p) = 1\right] > \eta(n)
+  \end{equation}
+  for all negligible functions $\eta$, where $n$ is the security parameter.
+  We wish to show that there exists a $\hat{V}$ such that for all simulators $\hat{S}$, there exists a cheating prover $\hat{P}$ which wins in the simulation soundness game with non-negligible probability.
+  Choose $\hat{V}=V$, the original honest verifier, then let $\hat{S}$ be any simulator.
+  We now construct $\hat{P}$, a prover which cheats in the simulation soundness game, which proceeds as follows:
+  \begin{enumerate}
+  \item Receive $r$ from $\hat{S}$.
+  \item Run $P^*(r)$ to yield $(x', r, p')$.
+  \item Generate a random $x\getr(\{0,1\}^{|x'|}\setminus\{x'\})$.
+  \item Send $x$ to $\hat{S}$ and receive $p$ in response (this $p$ will be ignored).
+  \item Send $(x', r, p')$ to $\hat{V}$.
+  \end{enumerate}
+  Note that $x'\neq x$ with probability 1, and hence $\Pr[x'\neq x \lor p'\neq p]=1$.
+
+  Now we see that
+  \begin{align*}
+    & \Pr\left[x'\notin L_R \land V(x', r, p')=1 \land (x'\neq x \lor p'\neq p)\right] \\
+    = & \Pr\left[x'\notin L_R \land V(x', r, p')=1\right]
+  \end{align*}
+  which is the same as the probability on the left side of equation \ref{eqn:adaptivesoundness} by the construction of $\hat{P}$.
+  We conclude that this probability is non-negligible, which is a contradiction.
+  Therefore $(P, V)$ is adaptively sound.
+
+\item I don't know.
+\item I don't know.
+\end{enumerate}
+\end{document}
