@@ -2,10 +2,15 @@
 \usepackage{amsmath}
 
 % new commands
+\newcommand{\cid}{\overset{c}{\simeq}}
+\newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
 \newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
 \newcommand{\getr}{\overset{R}{\gets}}
+\newcommand{\getrn}{\getr\{0, 1\}^n}
 \newcommand{\getrsingle}{\getr\{0, 1\}}
+\newcommand{\getrell}{\getr\{0, 1\}^{\ell(n)}}
 \newcommand{\getrpoly}{\getrsingle^{poly(n)}}
+\newcommand{\NP}{\class{NP}}
 
 % author, date, and title
 \author{Jef{}frey~Finkelstein}
@@ -14,7 +19,7 @@
 
 \begin{document}
 \maketitle
-\collaborators{}
+\collaborators{Davide, Dimitris}
 \begin{enumerate}
 \item
   We wish to show that simulation soundness implies adaptive soundness.
@@ -30,7 +35,7 @@
   \begin{enumerate}
   \item Receive $r$ from $\hat{S}$.
   \item Run $P^*(r)$ to yield $(x', r, p')$.
-  \item Generate a random $x\getr(\{0,1\}^{|x'|}\setminus\{x'\})$.
+  \item Generate a random $x\getr(\{0,1\}^{|x'|}\setminus(L_R\cup\{x'\}))$.
   \item Send $x$ to $\hat{S}$ and receive $p$ in response (this $p$ will be ignored).
   \item Send $(x', r, p')$ to $\hat{V}$.
   \end{enumerate}
@@ -45,7 +50,113 @@
   We conclude that this probability is non-negligible, which is a contradiction.
   Therefore $(P, V)$ is adaptively sound.
 
-\item I don't know.
-\item I don't know.
+\item
+  Suppose $(P, V)$ is the adaptive, non-interactive, witness indistinguishable protocol for $\NP$-relation $R$, and $(P', V')$ is the new protocol for $R$ which uses $(P, V)$ as its underlying protocol.
+  Note that $m(n)$ must be polynomial in $n$ but must satisfy $\ell(n)< m(n)$ for sufficiently large $n$.
+  \begin{description}
+  \item[Completeness] \hfill \\
+    Suppose $(x, w)\in R$.
+    Then $V(x, r, P(x, r, w))$ accepts with probability $1-\eta(n)$ for random $r$, where $\eta$ is a negligible function in $n$.
+    Equivalently, $V$ rejects with probability $\eta(n)$.
+    Now we have
+    \begin{align*}
+           & \Pr\left[V'(x, (c, p_1, p_2, \dots, p_n)) = 1\right] \\
+         = & \Pr\left[\forall i\leq m, V(x, c\oplus b_i, p_i) = 1\right] \\
+         = & 1 - \Pr\left[\exists i\leq m, V(x, c\oplus b_i, p_i) = 0\right] \\
+      \geq & 1 - \sum_{i=1}^m \Pr\left[V(x, c\oplus b_i, p_i) = 0\right] \\
+      \geq & 1 - m \cdot \Pr\left[V(x, c\oplus b_i, p_i) = 0\right]\text{, for fixed } i\\
+      \geq & 1 - m\cdot\eta(n)
+    \end{align*}
+    Since $m\cdot\eta(n)$ is still a negligible function in $n$ (assuming $m(n)$ is polynomial in $n$) $V'$ accepts with high probability.
+  \item[Soundness] \hfill \\
+    The soundness of $(P, V)$ reduces to the soundness of $(P', V')$.
+    The proof is by contradiction.
+    Assume there exists an $x\notin L_R$ and a cheating prover $\hat{P}'$ such that $[\hat{P}', V'](x, (x, z))_2=1$ with non-negligible probability.
+
+    Construct cheating prover for $(P, V)$, call it $\hat{P}$, which proceeds as follows on common reference string $R$:
+    \begin{enumerate}
+    \item Choose $x\getrn$.
+    \item Choose $r_1,r_2,\ldots,r_m\getrpoly$.
+    \item Let $b_i\gets R\oplus r_i$ for all $i\in\{1,2,\ldots, m\}$.
+    \item Run $\hat{P}'$ on input $(x, (b_1, b_2, \ldots, b_m))$ to yield $(c, p_1, p_2, \ldots, p_m)$.
+    \item (NEED TO PROVE THIS) There exists $i\in\{1, 2, \ldots, m\}$ such that $r_i=c$, so that $c\oplus b_i = c \oplus (R \oplus r_i) = c \oplus (R \oplus c) = R$.
+    \item Output $(x, p_i)$.
+    \end{enumerate}
+  \item[Witness indistinguishability] \hfill \\
+    The witness indistinguishability of $(P, V)$ reduces to the witness indistinguishability of $(P', V')$.
+    The proof is by contradiction using a hybrid argument.
+    Assume $(P', V')$ is not witness indistinguishable, so there exists a $\hat{V}'$, sufficiently large $x\in L_R$, $w_0$ and $w_1$ with $(x, w_0)\in R$ and $(x, w_1)\in R$, and auxiliary input $z$ such that
+    \begin{displaymath}
+      [P', \hat{V}']((x, w_0), (x, z))_2 \cid [P', \hat{V}']((x, w_1), (x, z))_2.
+    \end{displaymath}
+    Construct a sequence of intermediate provers $P'_i$, each of which proceeds as follows on input $x$:
+    \begin{enumerate}
+    \item Receive $b_1, b_2, \ldots, b_m$ from the verifier.
+    \item Choose a random $c\in \getrell$.
+    \item For each $j$ from $1$ to $i$, let $p_j\gets P(x, c\oplus b_j, w_0)$.
+    \item For each $j$ from $i$ to $m$, let $p_j\gets P(x, c\oplus b_j, w_1)$.
+    \item Send $(c, p_1, p_2, \ldots, p_m)$ to the verifier.
+    \end{enumerate}
+    Note that $P'_m(x)\equiv P'(x, w_0)$ and $P'_0(x)\equiv P'(x, w_1)$.
+    Since $\hat{V}'$ distinguishes $P'(x, w_0)$ from $P'(x, w_1)$ with non-negligible probability (call it $\epsilon(n)$), it follows that $\hat{V}'$ distinguishes $P'_m(x)$ from $P'_0(x)$ with the same probability.
+    By an averaging argument, there exists an $i$ such that $\hat{V}'$ distinguishes $P'_i(x)$ from $P'_{i+1}(x)$ with probability $\frac{\epsilon(n)}{m}$. This probability is still non-negligible if $m$, which is a function of $n$, is at least $\epsilon(n)$ but not too great (that is, $m(n)$ must not be exponential in $n$).
+
+    Now we can construct a cheating verifier, call it $\hat{V}$, for the original adaptive, non-interactive, witness indistinguishable protocol.
+    $\hat{V}$ proceeds as follows on common reference string $r$ and auxiliary input $(x, w_0, w_1, z, i)$:
+    \begin{enumerate}
+    \item Send $(x, w_0, w_1)$ to $P$, which responds with a certificate $\pi$.
+    \item Run $\hat{V}'$ on common input $x$ and common reference string $z$ to yield $b_1, b_2, \ldots, b_m$.
+    \item
+      Forward the message $b_1, b_2, \ldots, b_{i-1}, b_i, b_{i+1}, \ldots, b_m$ to a simulated instance of $P'$ running on common input $x$ and one of $w_0$ or $w_1$ (chosen by a coin flip).
+      It will yield $c, p_1, p_2, \ldots, p_m$.
+    \item Forward $c, p_1, p_2, \ldots, p_{i-1}, \pi, p_{i+1}, \ldots, p_m$ to $\hat{V}'$.
+    \item If $\hat{V}'$ accepts, accept, if it rejects, reject.
+    \end{enumerate}
+
+    We recognize that there is a serious problem with this approach: the hypothesis is that $\hat{V}'$ distinguishes $P(x, c\oplus b_i, w_0)$ from $P(x, c\oplus b_i, w_1)$, but the hypothesis doesn't suppose anything about how $\hat{V}'$ behaves on $P(x, r, w_0)$ and $P(x, r, w_1)$.
+    If we try to replace $b_i$ with $r$ (or something similar), then we lose the distinguishability guaranteed by the hypothesis.
+    Let us continue anyway, ignoring this problem.
+
+    We want to show now that $\hat{V}$ distinguishes $w_0$ from $w_1$ in the adaptive NIWI game with non-negligible probability.
+    Since $\hat{V}'$ distinguishes $P'_i(x)$ from $P'_{i+1}(x)$ in the witness indistinguishability game for general interactive protocols, replacing $p_i$ with $\pi$ (the output of $P(x, r, w_b)$ where $b\in\{0,1\}$) causes $\hat{V}'$ to distinguish between $P(x, r, w_0)$ and $P(x, r, w_1)$ with non-negligible probability.
+    Therefore $\hat{V}$ accepts if and only if $\hat{V}'$ accepts, $\hat{V}$ distinguishes $P(x, r, w_0)$ from $P(x, r, w_1)$ with non-negligible probability.
+  \end{description}
+  We have shown completeness, soundness, and witness indistinguishability for $(P', V')$, so it is indeed a WI protocol for $R$.
+\item
+  Given encryption scheme $(G, E, D)$ which is CCA-secure in the random oracle model, we construct encryption scheme $(G, E, D')$ which is CCA-secure in the random oracle model but not if the random oracle is replaced with an efficiently computable function.
+  For simplicity we will consider a single efficiently computable hash function, and not a family of efficiently computable hash functions.
+  We also assume that our hash function is $H\colon\{0, 1\}^*\to\{0, 1\}^{2k}$ and our efficiently computable function is $f\colon\{0, 1\}^*\to\{0, 1\}^{2k}$, where $k$ is a security parameter.
+
+  Let $U$ be the universal Turing machine, which on input $(\langle P\rangle, x)$ simulates the action of algorithm $P$ (which is given by its description, $\langle P\rangle$) on input $x$.
+  Define decryption algorithm $D'$ which proceeds as follows on decryption key $d$ and ciphertext $c$, where $|c|=k$, with access to hash oracle $H$:
+  \begin{enumerate}
+  \item Choose $r\getr\{0, 1\}^k$.
+  \item Let $a_1\gets U(c, r)$ (here $c$ is interpreted as the description of an efficiently computable function).
+  \item Let $a_2\gets H(r)$.
+  \item If $a_1 = a_2$ output $d$, else output $D_d^H(c)$.
+  \end{enumerate}
+
+  $(G, E, D')$ is CCA-secure in the random oracle model.
+  The reduction is from the CCA-security of the underlying model.
+  Assume with the intention of producing a contradiction that $(G, E, D')$ is not CCA-secure, so there exists an adversary $A'$ for $(G, E, D')$ that distinguishes the encryption of $m_0$ from the encryption of $m_1$ with non-negligible probability.
+  The same adversary distinguishes the encryption of $m_0$ from the encryption of $m_1$ with non-negligible probability.
+  The only difference in the analysis is that now, $A'$ queries $D_d^H$ and receives responses directly from it instead of receiving a real decryption only when $a_1\neq a_2$.
+  Let $q_d$ be the number of decryption queries.
+  From Ran's guidance, for each query, the probability that $a_1=a_2$ is at most $\eta(n)$, where $\eta$ is negligible function, so the probability that $a_1 = a_2$ for one of the $q_d$ queries is at most $q_d\cdot \eta(n)$, which is still negligible in $n$ (since $q_d$ is polynomially bounded).
+  Therefore $A'$ could not count on receiving the decryption key from the decryption oracle (because that happens only a negligible number of times).
+  This means that $A'$ can distinguish using only the real decryptions from $D_d^H$.
+  Since our adversary is now receiving exactly that (and more) from $D_d^H$, we can conclude that $A'$ distinguishes the encryption of $m_0$ from the encryption of $m_1$ with non-negligible probability.
+
+  Now we show that $(G, E, D')$ is not CCA-secure if the random oracle is replaced with an efficiently computable function $f$.
+  Construct an adversary $A$ which proceeds as follows:
+  \begin{enumerate}
+  \item Receive encryption key $e$.
+  \item Let $c_0 = \langle f \rangle$ (that is, $c_0$ is the description of the function $f$ [say, as a circuit of polynomial size]).
+  \item Query the decryption oracle $D_d^f$ on $c_0$ to yield $d$, the decryption key (since $U(c_0, r)=U(\langle f \rangle, r)=f(r)$ with probability 1 for random $r$).
+  \item Send $m_0, m_1\getr\{0, 1\}^{k}$ to the encryption oracle $E_e^f$ which yields $c$, the encryption of one of them.
+  \item Decrypt $c$ by running $D_d^f(c)$ to yield $m_b$.
+  \item Output $b$.
+  \end{enumerate}
+  This adversary outputs the correct $b$ with high probability (the same probability as in the correctness of the decryption algorithm of the underlying encryption scheme).
 \end{enumerate}
 \end{document}
