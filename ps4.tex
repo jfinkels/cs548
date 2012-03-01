@@ -79,9 +79,19 @@
     \item Choose $r_1,r_2,\ldots,r_m\getrpoly$.
     \item Let $b_i\gets R\oplus r_i$ for all $i\in\{1,2,\ldots, m\}$.
     \item Run $\hat{P}'$ on input $(x, (b_1, b_2, \ldots, b_m))$ to yield $(c, p_1, p_2, \ldots, p_m)$.
-    \item (NEED TO PROVE THIS) There exists $i\in\{1, 2, \ldots, m\}$ such that $r_i=c$, so that $c\oplus b_i = c \oplus (R \oplus r_i) = c \oplus (R \oplus c) = R$.
+    \item
+      For sufficiently large $m$, there exists an $i\in\{1, 2, \ldots, m\}$ such that $r_i=c$, so that $c\oplus b_i = c \oplus (R \oplus r_i) = c \oplus (R \oplus c) = R$.
+      Find this $i$.
     \item Output $(x, p_i)$.
     \end{enumerate}
+    We recognize that there is a problem with this approach: ``sufficiently large $m$'' \emph{seems} to be exponentially large.
+    It really just needs to be large enough so that such an $i$ exists with high probability.
+    Let us continue anyway, ignoring this problem.
+
+    Since $\hat{P}'$ fools $V'$ with high probability, and since $V'$ checks that all $m$ instances of $V(x, c\oplus b_i, p_i)$ accept, it follows that with high probability, for every $i$, $V(x, c\oplus b_i, p_i)$ accepts.
+    Specifically, for high probability the $i$ chosen in the algorithm above causes $V$ to accept.
+    Therefore $V(x, c\oplus b_i, p_i)=V(x, R, \hat{P}(x, R))$ accepts with high probability.
+    This is a contradiction with the hypothesis that $(P, V)$ is sound.
   \item[Witness indistinguishability] \hfill \\
     The witness indistinguishability of $(P, V)$ reduces to the witness indistinguishability of $(P', V')$.
     The proof is by contradiction using a hybrid argument.
