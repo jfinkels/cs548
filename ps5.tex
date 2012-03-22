@@ -1,0 +1,75 @@
+\documentclass[draft]{article}
+%\usepackage{amsmath}
+
+% new commands
+\newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
+%% \newcommand{\cid}{\overset{c}{\simeq}}
+%% \newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
+%% \newcommand{\getr}{\overset{R}{\gets}}
+%% \newcommand{\getrn}{\getr\{0, 1\}^n}
+%% \newcommand{\getrsingle}{\getr\{0, 1\}}
+%% \newcommand{\getrell}{\getr\{0, 1\}^{\ell(n)}}
+%% \newcommand{\getrpoly}{\getrsingle^{poly(n)}}
+%% \newcommand{\NP}{\class{NP}}
+
+% author, date, and title
+\author{Jef{}frey~Finkelstein}
+\date{27 March 2012}
+\title{CS548 problem set 5}
+
+\begin{document}
+\maketitle
+\collaborators{Davide, Dimitris, Xianrui}
+\begin{enumerate}
+\item I don't know.
+\item 
+  This protocol is a zero-knowledge protocol because it satisfies completeness, soundness, and zero-knowledge.
+  We assume the underlying $(P, V)$ protocol has completeness 1, and that the ``bogus'' witness used is the empty string, $\lambda$.
+  We will call the first part of the $(P', V')$ protocol, in which $P'$ simulates $V(x)$ and $V'$ simulates $P(x, \lambda)$, ``phase 1'' and the subsequent simulated $(P, V)$ interaction (if it occurs) ``phase 2''.
+
+  \begin{description}
+  \item[Completeness] \hfill \\
+    Suppose $(x, w)\in R$ (so $w$ is the unique witness for $x$ in $R$).
+    First, consider the case in which $w\neq\lambda$.
+    In this case, phase 1 will reject with probability 1.
+    Then phase 2 of the protocol is identical to the interaction of $P(x, w)$ with $V(x)$, which will accept with probability 1.
+    In the case that $w=\lambda$, $P'$ will send $w$ to $V$ after the phase 1.
+    At that point the verifier can directly verify that $(x, w)\in R$ in polynomial time with probability 1.
+    Therefore, in any case, $V'$ will accept with probability 1.
+  \item[Soundness] \hfill \\
+    I don't know.
+  \item[Zero knowledge] \hfill \\
+    Assume $E$ is the proof of knowledge extractor for $(P, V)$ and $S$ is the zero knowledge simulator for $(P, V)$.
+    Let $\hat{V}'$ be a cheating verifier for the $(P', V')$ protocol.
+    Construct a simulator $S'$ for $\hat{V}'$ protocol which proceeds as follows on input $x$:
+    \begin{enumerate}
+    \item
+      For phase 1, simulate $E(x)$ interacting with $\hat{V}'$ to produce a transcript $T$ and a witness $w'$.
+      Technically, $E(x)$ expects to be interacting with the prover $P$ which would work if $\hat{V}'$ were an honest verifier.
+      If $\hat{V}'$ does not act like an honest verifier in this phase, the transcript will reflect this, so this simulator must check this.
+      That is, the simulator checks $T$ to see if $\hat{V}'$ aborted early or otherwise sent a message which does not match the $(P, V)$ protocol, in which case this simulator aborts.
+    \item If $T$ reflects that the underlying $V$ would have accepted in phase 1, send $w'$ to $\hat{V}'$.
+    %% TODO But what if \hat{V}' cheats and does not act like $V$ in this step?
+    \item Otherwise, simulate $S(x)$ interacting with $\hat{V}'$ in phase 2 to produce a transcript $T$.
+    \end{enumerate}
+
+    The simulation of phase 1 is computationally indistinguishable from the interaction with the real prover because the simulator simply runs $E$, and the $(E, P)$ interaction is computationally indistinguishable from the $(V, P)$ interaction.
+    In the case that $\hat{V}'$ does not behave like $P$ in phase 1, the $(P, V)$ would have aborted, so the extractor would have aborted with high probability and hence the simulator would have aborted with high probability.
+
+    If the real prover would have sent the witness $w$ to $\hat{V}'$ after phase 1, so will the simulator, since it gets a witness $w'$ using the extractor $E$.
+    Since there is at most one witness, $w$ is computationally indistinguishable from $w'$.
+    
+    If the real prover would have engaged in phase 2, the simulator $S'$ runs $S$, and by the zero-knowledge property of $(P, V)$, the transcript produced by $S$ when interacting with $V$ (which $\hat{V}'$ simulates in this phase) is computationally indistinguishable from the interaction of the real prover $P$ with $V$.
+
+    Therefore, we have shown that the view of $\hat{V}'$ when interacting with $S'$ is computationally indistinguishable from the view of $\hat{V}'$ when interaction with $P$.
+  \end{description}
+
+  However, this protocol is not a concurrent zero-knowledge protocol.
+  Consider the following adversary which controls two concurrent instances of the verifier $V'(x)$ interacting with $P'(x, w)$ (call them $V'_1$ and $V'_2$):
+  \begin{enumerate}
+  \item Run the interaction between $V'_1(x)$ and $P'(x, w)$.
+  \item If $P'$ sends $w$, do something.
+  \item Otherwise simulate the interaction of $V'_1(x)$ (which in phase 2 is playing the part of $V(x)$) with $V'_1(x)$ (which in phase 1 is playing the part of $P(x, \lambda)$).
+  \end{enumerate}
+\end{enumerate}
+\end{document}
