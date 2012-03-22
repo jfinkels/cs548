@@ -37,7 +37,17 @@
     At that point the verifier can directly verify that $(x, w)\in R$ in polynomial time with probability 1.
     Therefore, in any case, $V'$ will accept with probability 1.
   \item[Soundness] \hfill \\
-    I don't know.
+    Suppose no $w$ exists such that $(x, w)\in R$.
+    Assume there exists a cheating prover $\hat{P}'$ for the $(P', V')$ protocol.
+    Construct a cheating prover $\hat{P}$ for the $(P, V)$ protocol as follows on input $x$:
+    \begin{enumerate}
+    \item Simulate the interaction of $\hat{P}'$ with the honest prover $P$ (since this is what an honest verifier would have done in phase 1) with input $x$ and witness $\lambda$.
+    \item If $\hat{P}'$ outputs a witness $w$, forward it to the external verifier $V$ (which will reject since $x$ has no witness).
+    \item Otherwise, simulate the interaction of $\hat{P}'$ with the external verifier $V$.
+    \end{enumerate}
+    We know that $\hat{P}'$ fools the honest verifier $V'$, which acts exactly like $P(x, \lambda)$ in phase 1 and exactly like $V(x)$ in phase 2, with high probability.
+    Since our simulator $\hat{P}$ simulates $\hat{P}'$ interacting with $P(x, \lambda)$ in phase 1 and $V(x)$ in phase 2, the external verifier $V$ will accept exactly when $V'$ would have accepted.
+    %% TODO How often does P' output w? If it happens too often, this is bad.
   \item[Zero knowledge] \hfill \\
     Assume $E$ is the proof of knowledge extractor for $(P, V)$ and $S$ is the zero knowledge simulator for $(P, V)$.
     Let $\hat{V}'$ be a cheating verifier for the $(P', V')$ protocol.
