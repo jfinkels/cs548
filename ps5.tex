@@ -1,4 +1,5 @@
 \documentclass[draft]{article}
+\usepackage{fullpage}
 %\usepackage{amsmath}
 
 % new commands
@@ -60,7 +61,7 @@
       Each one will yield the initial message $s_i$.
     \item For each $i\in\{1,2,\ldots,n\}$, choose $b_i$ uniformly at random and send $b_i$ to instance $i$ of $M$.
     \item Each instance of $M$ will yield a final message $t_i$.
-    \item Output $(S, T)$ (along with a uniformly random common reference string), where $S=\langle s_1, s_2, \ldots, s_n \rangle$ and $T=\langle t_1, t_2, \ldots, t_n \rangle$.
+    \item Output, in addition to a uniformly random common reference string, $(S, T)$, where $S=\langle s_1, s_2, \ldots, s_n \rangle$ and $T=\langle t_1, t_2, \ldots, t_n \rangle$.
     \item
       If the (cheating) verifier queries the random oracle on some $s_i$, respond with the corresponding bit $b_i$.
       For any other queries, respond with uniformly random bits (consistent across redundant queries).
@@ -126,7 +127,7 @@
   \begin{enumerate}
   \item Initiate session 1.
   \item
-    In session 1, run phase 1 of the interaction between $V'(x)$ and $P'(x, w)$ (which is the interaction between $P(x, \lambda)$ and $V(x)$).
+    In session 1, run phase 1 of  $V'(x)$ interacting with $P'(x, w)$ (which is the interaction between $P(x, \lambda)$ and $V(x)$).
     If $P'$ sends $w$, halt and accept.
   \item Initiate session 2.
   \item 
