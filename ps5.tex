@@ -7,7 +7,7 @@
 %% \newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
 %% \newcommand{\getr}{\overset{R}{\gets}}
 %% \newcommand{\getrn}{\getr\{0, 1\}^n}
-%% \newcommand{\getrsingle}{\getr\{0, 1\}}
+\newcommand{\getrsingle}{\getr\{0, 1\}}
 %% \newcommand{\getrell}{\getr\{0, 1\}^{\ell(n)}}
 %% \newcommand{\getrpoly}{\getrsingle^{poly(n)}}
 %% \newcommand{\NP}{\class{NP}}
@@ -21,7 +21,54 @@
 \maketitle
 \collaborators{Davide, Dimitris, Xianrui}
 \begin{enumerate}
-\item I don't know.
+\item
+  Let $R$ be the relation $\left\{(G, \sigma) \,\middle|\, \sigma \textnormal{ is a Hamiltonian cycle in } G\right\}$.
+  Suppose $(P, V)$ is the original single-instance Blum protocol for Hamiltonicity, $(P^{\parallel}, V^{\parallel})$ is the $n$-wise parallel Blum protocol, and $(P', V')$ is the n-wise parallel random oracle Blum protocol which uses $(P, V)$ as the underlying protocol.
+  \begin{description}
+  \item[Completeness] \hfill \\
+    Suppose $(G, \sigma)\in R$.
+    Then the probability that $(P', V')$ accepts is exactly the same as the probability that all $n$ of the honest $(P, V)$ protocol instances accept (since the honest verifier just sends random bits, which have exactly the same distribution as the result of querying the random oracle).
+    Assuming completeness 1 for the original $n$-wise protocol, the new protocol also has completeness 1.
+  \item[Soundness] \hfill \\
+    We know that if the original Blum protocol is sound then the $n$-wise parallel (non-random oracle) Blum protocol is also sound.
+    We will use this fact to show that the new protocol is sound in the random oracle model.
+
+    Suppose $G$ is a graph which does not have a Hamiltonian cycle.
+    Assume there exists a cheating prover for the $(P', V')$ random oracle protocol; call it $\hat{P}'$.
+    Assume without loss of generality that this cheating prover makes a single query to the random oracle of the form $S=\langle s_1, s_2, \ldots, s_n \rangle$ which contains all the $s_i$ queries it would have made.
+    We will construct a cheating prover $\hat{P}^{\parallel}$ for the $(P^\parallel, V^\parallel)$ protocol which proceeds as follows on input $G$:
+    \begin{enumerate}
+    \item Begin simulating $\hat{P}'$ on input $G$.
+    \item
+      When $\hat{P}'$ makes its query, $S$, to the random oracle, intercept it and forward it to the $n$ parallel instances of $V^\parallel$ to yield a response of the form $C = \langle c_1, c_2, \ldots, c_n \rangle$.
+      Forward the responses to $\hat{P}'$ as if they were from the random oracle.
+    \item When $\hat{P}'$ sends its message of the form $(S, T)$, forward $T=\langle t_1, t_2, \ldots, t_n \rangle$ to the $n$ parallel instances of $V^\parallel$.
+    \end{enumerate}
+
+    Some technical notes.
+    First, notice that the $S$ with which $\hat{P}'$ queries the oracle must be the same as the $S$ which it sends as its message to the verifier, because otherwise it would not be able to convince the verifier in the $(P', V')$ protocol with high probability (since the verifier needs to reconstruct $C$ from the random oracle using $S$).
+    Second, notice that $\hat{P}'$ \emph{must} make at least one query to the random oracle, again because the verifier must reconstruct $C$ from the random oracle using $S$.
+    If no query were made, when the verifier attempted to reconstruct $C$, it would get random bits which would not be correlated with the $S$ and $T$ sent bythe prover.
+
+    For these reasons, the probability that $\hat{P}^\parallel$ fools $V^\parallel$ is exactly the same as the probability that $\hat{P}'$ fools $V'$, since $V'$ runs $n$ instances of $V$.
+  \item[Zero-knowledge] \hfill \\
+    Since $(P, V)$ is a zero-knowledge protocol, there exists a simulator $M$ for it.
+    We use this simulator to construct a zero-knowledge simulator $M'$ for $(P', V')$ which proceeds as follows on input $G$, a graph with a Hamiltonian cycle $\sigma$.
+    \begin{enumerate}
+    \item
+      Simulate $n$ instances of $M$ in parallel.
+      Each one will yield the initial message $s_i$.
+    \item For each $i\in\{1,2,\ldots,n\}$, choose $b_i$ uniformly at random and send $b_i$ to instance $i$ of $M$.
+    \item Each instance of $M$ will yield a final message $t_i$.
+    \item Output $(S, T)$ (along with a uniformly random common reference string), where $S=\langle s_1, s_2, \ldots, s_n \rangle$ and $T=\langle t_1, t_2, \ldots, t_n \rangle$.
+    \item
+      If the (cheating) verifier queries the random oracle on some $s_i$, respond with the corresponding bit $b_i$.
+      For any other queries, respond with uniformly random bits (consistent across redundant queries).
+    \end{enumerate}
+    Since each $M$ produces output which is indistinguishable from the view of $V$ when interacting with the prover $P$, the aggregate output $(S, T)$ is indistinguishable from the output of the honest prover $P'$ (which just outputs the views of each of the underlying provers).
+    In other words, $M'$ outputs the aggregate output of $n$ independent instances of $M$, each of which is indistinguishable from the view of $V$ when interacting with $P$, which is the same as the view of $V'$ when interacting with $P'$.
+    Therefore the output of the simulator $M'(G)$ is indistinguishable from the output of $P(G, \sigma, CRS)$.
+  \end{description}
 \item 
   This protocol is a zero-knowledge protocol because it satisfies completeness, soundness, and zero-knowledge.
   We assume the underlying $(P, V)$ protocol has completeness 1, and that the ``bogus'' witness used is the empty string, $\lambda$.
@@ -75,7 +122,7 @@
   \end{description}
 
   However, this protocol is not a concurrent zero-knowledge protocol.
-  Consider the following adversary which controls two concurrent instances of the verifier $V'(x)$ interacting with $P'(x, w)$:
+  Consider the following adversary which controls two concurrent instances of the verifier $V'(x)$ interacting with $P'(x, w)$ (the adversary accepts when it detects that it is interacting with the prover and not the simulator):
   \begin{enumerate}
   \item Initiate session 1.
   \item
@@ -84,10 +131,19 @@
   \item Initiate session 2.
   \item 
     In session 1, run phase 2 of the interaction.
-    %% TODO Here, couldn't we just interact V'_1 with V'_2 and get the same?
     When $P'$ (now acting as $P(x, w)$) sends a message to the verifier, forward that message directly to the $P'$ running in session 2 (which acts as $V(x)$).
     When the $P'$ running in session 2 (acting as $P(x, w)$) sends a message to the verifier, forward that message directly to the $P'$ running in session 1 (acting as $V(x)$).
-  \item When $P'$ in session 1 eventually accepts or rejects, halt and do whatever it did.
+
+    (The adversary is playing the prover against itself in this stage, in order that $P(x, w)$ will interact with $V(x)$.)
+  \item
+    If $P'$ in session 2 (acting as $V(x)$) sends $w$, the adversary intercepts $w$, halts, and accepts.
+    If $P'$ in session 2 does not send $w$, reject.
   \end{enumerate}
+
+  The probability that $P'$ sends $w$ after phase 1 in session 1 is exponentially small, since there is only one witness out of $2^n$, and the probability that $V$ accepts may be less than 1.
+  However, the key here is the probability that $P'$ sends $w$ in session 2 with high probability.
+  Since $P'$ in session 2 (acting as $V(x)$) interacts with $P'$ in session 1 (acting as $P(x, w)$), by the completeness of the original $(P, V)$ protocol, the adversary will halt and accept with at least the completeness probability of the $(P, V)$ protocol when interacting with the real prover (instead of the simulator, which doesn't know the witness).
+  When interacting with the simulator, the adversary will in the last step accept with only an exponentially small probability because the simulator does not know the witness and merely provides an indistinguishable view (the view provides a witness an exponentially small amount of the time).
+  Therefore the advantage that the adversary has when playing with the real prover is non-negligible, so the protocol is not concurrent zero-knowledge.
 \end{enumerate}
 \end{document}
