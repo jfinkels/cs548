@@ -1,0 +1,64 @@
+\documentclass[draft]{article}
+%\usepackage{fullpage}
+\usepackage{amsmath}
+
+% new commands
+\newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
+%% \newcommand{\cid}{\overset{c}{\simeq}}
+%% \newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
+\newcommand{\getr}{\overset{R}{\gets}}
+%% \newcommand{\getrn}{\getr\{0, 1\}^n}
+\newcommand{\getrsingle}{\getr\{0, 1\}}
+%% \newcommand{\getrell}{\getr\{0, 1\}^{\ell(n)}}
+%% \newcommand{\getrpoly}{\getrsingle^{poly(n)}}
+%% \newcommand{\NP}{\class{NP}}
+
+% author, date, and title
+\author{Jef{}frey~Finkelstein}
+\date{17 April 2012}
+\title{CS548 problem set 6}
+
+\begin{document}
+\maketitle
+\collaborators{}
+\begin{enumerate}
+\item
+  Let $(C, R)$ be a commitment scheme which is non-malleable with respect to identity.
+  Let $(Gen, Sgn, Ver)$ be a signature scheme which has existential unforgeability security against chosen message attacks.
+  Then there exists a commitment scheme $(C', R')$ which is non-malleable with respect to content.
+  Construct committer $C'$ which proceeds as follows on input $m$:
+  \begin{enumerate}
+  \item $(SK, VK) \gets Gen(1^n)$.
+  \item Let $T$ be the transcript of the interaction of $C$ with $R$, where the message being committed is $m$ and the identity of $C$ is $VK$.
+  \item $\sigma\gets Sgn(T, SK)$.
+  \item Send $\sigma$ to $R'$.
+  \end{enumerate}
+  and receiver $R'$ which proceeds as follows on receipt of the ``open'' command for commitment $\sigma$:
+  \begin{enumerate}
+  \item TODO Are we able to extract the identity from the signed transcript?
+  \item Run $Ver(T, VK)$ to verify that $T$ is signed by $C'$.
+  \item TODO fill me in...
+  \end{enumerate}
+
+  To show that $(C', R')$ is a non-malleable commitment scheme with respect to identity, we present a proof by contrapositive.
+  Assume that $(C', R')$ is a malleable commitment scheme with respect to identity.
+  Then there exists a ``person-in-the-middle'' adversary $A$ which can modify the commitment sent by $C'$ to $R'$ according to the non-malleability game.
+  Using $A$ we construct a forger, $F$, which can output a forged message with respect to the signature scheme.
+  $F$ proceeds as follows:
+  \begin{enumerate}
+  \item $m\getrsingle$.
+  \item
+    Simulate the interaction of $C'(m)$ with $R'$, including the adversary in the middle.
+    Whenever $C'$ or $R'$ queries $Sgn$ or $Ver$, forward the queries to the correct oracles and the responses back to the correct parties.
+    $C'$ sends a commitment to $m$ and an ``open'' to $R'$.
+    Let $\sigma$ be the honest commitment to $m$, $\tilde{\sigma}$ be the adversarially modified commitment, and $\tilde{m}$ the message eventually revealed to $R'$.
+  \item Output $(\tilde{m}, \tilde{\sigma})$.
+  \end{enumerate}
+  %% TODO Does the adversary never query the signing oracle on \tilde{m}?
+  Assuming the adversary $A$ never queries the signing oracle for $\tilde{m}$, the output $\tilde{\sigma}$ will be the correct signature of $\tilde{m}$ which breaks existential unforgeability.
+  \begin{align*}
+    & \Pr\left[Ver(\tilde{m}, \tilde{\sigma})=1\right] \\
+  = & \Pr\left[Ver(\tilde{m}, \tilde{\sigma})=1\right]
+  \end{align*}
+\end{enumerate}
+\end{document}
