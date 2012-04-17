@@ -1,17 +1,21 @@
 \documentclass[draft]{article}
 %\usepackage{fullpage}
 \usepackage{amsmath}
+\usepackage{amssymb}
 
 % new commands
 \newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
-%% \newcommand{\cid}{\overset{c}{\simeq}}
+\newcommand{\cid}{\overset{c}{\simeq}}
+\newcommand{\ncid}{\overset{c}{\not\simeq}}
 %% \newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
 \newcommand{\getr}{\overset{R}{\gets}}
-%% \newcommand{\getrn}{\getr\{0, 1\}^n}
+\newcommand{\getrn}{\getr\{0, 1\}^n}
 \newcommand{\getrsingle}{\getr\{0, 1\}}
 %% \newcommand{\getrell}{\getr\{0, 1\}^{\ell(n)}}
-%% \newcommand{\getrpoly}{\getrsingle^{poly(n)}}
+\newcommand{\getrpoly}{\getrsingle^{poly(n)}}
 %% \newcommand{\NP}{\class{NP}}
+\newcommand{\mim}{\mathsf{mim}}
+\newcommand{\msim}{\mathsf{sim}}
 
 % author, date, and title
 \author{Jef{}frey~Finkelstein}
@@ -20,45 +24,80 @@
 
 \begin{document}
 \maketitle
-\collaborators{}
+\collaborators{Davide, Dimitris, Xianrui}
 \begin{enumerate}
 \item
   Let $(C, R)$ be a commitment scheme which is non-malleable with respect to identity.
-  Let $(Gen, Sgn, Ver)$ be a signature scheme which has existential unforgeability security against chosen message attacks.
-  Then there exists a commitment scheme $(C', R')$ which is non-malleable with respect to content.
+  Let $\mathcal{S}$ be a signature scheme, defined by $\mathcal{S}=(Gen, Sgn, Ver)$, which has existential unforgeability against chosen message attacks.
+  Then the following commitment scheme $(C', R')$ is non-malleable with respect to content.
   Construct committer $C'$ which proceeds as follows on input $m$:
   \begin{enumerate}
   \item $(SK, VK) \gets Gen(1^n)$.
-  \item Let $T$ be the transcript of the interaction of $C$ with $R$, where the message being committed is $m$ and the identity of $C$ is $VK$.
-  \item $\sigma\gets Sgn(T, SK)$.
-  \item Send $\sigma$ to $R'$.
+  \item $v\gets C(m, VK)$.
+  \item $\sigma\gets Sgn(v, SK)$.
+  \item Send $(\sigma, v, VK)$ to $R'$.
   \end{enumerate}
-  and receiver $R'$ which proceeds as follows on receipt of the ``open'' command for commitment $\sigma$:
+  Construct receiver $R'$ which proceeds as follows on input $(\sigma, v, VK)$:
   \begin{enumerate}
-  \item TODO Are we able to extract the identity from the signed transcript?
-  \item Run $Ver(T, VK)$ to verify that $T$ is signed by $C'$.
-  \item TODO fill me in...
+  \item If $Ver(\sigma, v, VK)$ rejects, output $\bot$.
+  \item $m\gets R(v, VK)$.
   \end{enumerate}
 
-  To show that $(C', R')$ is a non-malleable commitment scheme with respect to identity, we present a proof by contrapositive.
-  Assume that $(C', R')$ is a malleable commitment scheme with respect to identity.
-  Then there exists a ``person-in-the-middle'' adversary $A$ which can modify the commitment sent by $C'$ to $R'$ according to the non-malleability game.
-  Using $A$ we construct a forger, $F$, which can output a forged message with respect to the signature scheme.
-  $F$ proceeds as follows:
+  To show that $(C', R')$ is non-malleable with respect to content, we present a proof by contrapositive.
+  Assume that $(C', R')$ is malleable with respect to content, so there exists an adversary $A'$ such that $\mim^{A'}_{(C', R')}(\sigma, v, VK, z)$ is computationally distinguishable from $\mim^{A'}_{(C', R')}(\tilde{\sigma}, \tilde{v}, \tilde{VK}, z)$ (where $z$ is auxiliary input to $A'$).
+  We wish to show that either $\mathcal{S}$ is existentially forgeable with a chosen message attack or $(C, R)$ is malleable.
+  Suppose $\mathcal{S}$ is existentially unforgeable against chosen message attacks.
+  We will show that $(C, R)$ is malleable by constructing an adversary $A$ which proceeds as follows on input $(v, ID)$ and auxiliary input $z_0=(z, SK)$ where $SK$ is the signing key corresponding to $ID$ (interpreted as a verification key):
   \begin{enumerate}
-  \item $m\getrsingle$.
-  \item
-    Simulate the interaction of $C'(m)$ with $R'$, including the adversary in the middle.
-    Whenever $C'$ or $R'$ queries $Sgn$ or $Ver$, forward the queries to the correct oracles and the responses back to the correct parties.
-    $C'$ sends a commitment to $m$ and an ``open'' to $R'$.
-    Let $\sigma$ be the honest commitment to $m$, $\tilde{\sigma}$ be the adversarially modified commitment, and $\tilde{m}$ the message eventually revealed to $R'$.
-  \item Output $(\tilde{m}, \tilde{\sigma})$.
+  \item $(v, \sigma)\gets Sgn(v, SK)$.
+  \item $(\tilde{v}, \tilde{\sigma}, \tilde{ID})\gets A'(v, \sigma, ID, z)$.
+  \item If $ID=\tilde{ID}$, abort.
+  \item Output $(\tilde{v}, \tilde{ID})$.
   \end{enumerate}
-  %% TODO Does the adversary never query the signing oracle on \tilde{m}?
-  Assuming the adversary $A$ never queries the signing oracle for $\tilde{m}$, the output $\tilde{\sigma}$ will be the correct signature of $\tilde{m}$ which breaks existential unforgeability.
-  \begin{align*}
-    & \Pr\left[Ver(\tilde{m}, \tilde{\sigma})=1\right] \\
-  = & \Pr\left[Ver(\tilde{m}, \tilde{\sigma})=1\right]
-  \end{align*}
+  First, note that if $ID=\tilde{ID}$ then $A'$ has produced a $\tilde{v}$ and $\tilde{\sigma}$ which can be verified using $ID$ as the verification key, thus breaking existential unforgeability.
+  Since we assumed $\mathcal{S}$ is secure, the probability of this happening is negligible, hence the probability of $A$ aborting is negligible.
+
+  Second, note that the only way to get a single signing key $SK$ into the auxiliary input corresponding to each $ID$ is to assume the signature scheme is a one-time signature scheme.
+
+  Suppose $D'$ is the probabilistic polynomial time machine which distinguishes $\mim^{A'}_{(C', R')}(\sigma, v, VK, z)$ from $\mim^{A'}_{(C', R')}(\tilde{\sigma}, \tilde{v}, \tilde{VK}, z)$.
+  Construct a distinguisher $D$ which proceeds as follows on input $(v, ID, z)$: run $D'$ on $(v, R, ID, z)$ where $R\getrpoly$, and output whatever $D'$ outputs.
+  $D$ will do exactly what $D'$ does on input $(v, R, ID, z)$, so it will distinguish $(v, ID, z)$ from $(\tilde{v}, \tilde{ID}, z)$.
+
+  Therefore we have shown that if $(C', R')$ is malleable, then either $\mathcal{S}$ is existentially forgeable with a chosen message attack or $(C, R)$ is malleable.
+  In other words, if $(C, R)$ and $\mathcal{S}$ are secure, then so is $(C', R')$.
+
+\item
+  This solution uses the ideas from \cite[Claim~4]{lpv}.
+
+  Suppose $(C, R)$ is the concurrent non-malleable commitment scheme for identifiers of length $\lg n + 1$.
+  We construct a one-one concurrent commitment scheme $(C', R')$ for identifiers of length $n$ as follows.
+  The committer $C'$ proceeds as follows on input $m$ and identifier $d=d_1d_2\cdots d_n$, both of length $n$:
+  \begin{enumerate}
+  \item $r_1,\ldots,r_n\getrn$ such that $m=\bigoplus_{i=1}^n r_i$.
+  \item For $i\in\{0, 1\}^{\lg n}$ concurrently, $c_i \gets C(r_i, i\circ d_i)$.
+  \item Send $((c_1, 1\circ d_1), (c_2, 2\circ d_2), \ldots, (c_n, n\circ d_n))$.
+  \end{enumerate}
+  The receiver $R'$ proceeds as follows on input $((c_1, 1\circ d_1), \ldots, (c_n, n\circ d_n))$:
+  \begin{enumerate}
+  \item For $i\in\{0, 1\}^{\lg n}$ concurrently, $r_i\gets R(c_i, i\circ d_i)$.
+  \item $m\gets\bigoplus_{i=1}^n r_i$.
+  \end{enumerate}
+
+  We claim that if $(C, R)$ is concurrent non-malleable with identifiers of length $\lg n + 1$ then $(C', R')$ is one-one concurrent non-malleable with identifiers of length $n$.
+  The proof is by contrapositive.
+  Assume $(C', R')$ is malleable, so there exists an adversary $A'$ which meets the definition of malleable.
+  We construct an adversary $A$ which proceeds as follows, receiving inputs $(c_1, 1\circ d_1), \ldots, (c_n, n\circ d_n)$ concurrently on the left:
+  \begin{enumerate}
+  \item $(\tilde{c}_1, \tilde{\mathsf{id}}_1), \ldots, (\tilde{c}_n, \tilde{\mathsf{id}}_n) \gets A'((c_1, 1\circ d_1), \ldots, (c_n, n\circ d_n))$
+  \item Send $(\tilde{c}_i, \tilde{\mathsf{id}}_i)$ to receiver instance $i$ for all $i\in\{1,2,\ldots, n\}$.
+  \end{enumerate}
+  Now $\mim^{A}_{(C, R)}=\mim^{A'}_{(C', R')}\ncid\mim^{A'}_{(C', R')}=\mim^{A}_{(C, R)}$, which shows that the view of $A$ on the left is computationally distinguishable from the view of $A$ on the right.
+  Therefore if $(C, R)$ is concurrent non-malleable then $(C', R')$ is one-one concurrent non-malleable.
+
+  I don't know if it's possible to adapt this proof to construct a one-one concurrent non-malleable commitment scheme that allows for identities of length $p(n)$ for arbitrary polynomials $p$.
+  One idea is to repeat the above construction on each of $\frac{p(n)}{n}$ blocks (each of size $n$).
+  However, to index the identifier $d=d_1d_2\cdots d_{p(n)}$ without repeats would require $\lg p(n)=k\lg n$ bits for some $k$, instead of the $\lg n$ allowed.
 \end{enumerate}
+\bibliographystyle{plain}
+\bibliography{bibliography}
 \end{document}
