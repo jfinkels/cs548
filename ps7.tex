@@ -1,7 +1,7 @@
 \documentclass[draft]{article}
 %\usepackage{fullpage}
 %\usepackage{amsmath}
-%\usepackage{amssymb}
+\usepackage{amssymb}
 
 % new commands
 \newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
@@ -24,10 +24,25 @@
 
 \begin{document}
 \maketitle
-\collaborators{}
+\collaborators{Ben, Davide, Dimitris}
 \begin{enumerate}
-\item I don't know.
-\item I don't know.
+\item
+  Proof by contrapositive.
+  Assume $\pi$ does not securely emulate $\phi$, so there exists an adversary $A'$ such that for all simulators $S'$ there exists an environment $E'$ and some auxiliary information $z'\in\{0, 1\}^n$ such that the two probability ensembles are computationally distinguishable, for some $n\in\mathbb{N}$.
+  Our goal is to show that there exists an adversary $A$ and an environment $E$ such that for all simulators $S$ there exists an auxiliary input $z$ such that the two probability ensembles are computationally distinguishable, for some $n'\in\mathbb{N}$.
+  Choose $A=A'$.
+  Construct environment $E$ which, on auxiliary input $z=(E', z')$, does exactly what $E'(z')$ does.
+  The $E'$ and $z'$ included in the auxiliary input $z$ are the environment and auxiliary input which correspond to the external simulator $S$ with which $E$ will be interacting (in the ideal interaction).
+  We know such an $E'$ and $z'$ exist by our initial assumption (that is, for all $S'$ there exist an $E'$ and $z'$, etc.; in this case, $S$ is covered by the universally quantified $S'$).
+
+  Since we chose $A=A'$ and $E'$ and $z'$ to depend on the external simulator $S$, the output of $E(z)$ will be distributed identically to the output of $E'(z')$ in both the real and ideal interactions.
+  Since the $(E', \pi, A')$ and $(E', \phi, S)$ probability ensembles are computationally distinguishable with auxiliary input $z'$, so will be the $(E, \pi, A)$ and $(E, \phi, S)$ with auxiliary input $z=(E', z')$.
+\item
+  \begin{enumerate}
+  \item $\mathcal{F}_{OT}((x_0, x_1), b)=(\bot, x_b)$ (this is both an ideal functionality specification, and a program for the trusted party written in a functional programming language).
+  \item I don't know.
+  \item I don't know.
+  \end{enumerate}
 \item I don't know.
 \end{enumerate}
 \end{document}
