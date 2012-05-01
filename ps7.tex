@@ -60,11 +60,22 @@
   \item
     Suppose we have the following components:
     \begin{itemize}
-    \item $(C, R)$ is a commitment scheme.
+    \item $(C, R)$ is a computationally hiding and perfectly binding commitment scheme.
     \item $f$ is a one-way function.
-    \item $(P_c, V_c)$ is a zero-knowledge proof of knowledge for the \NP-relation defined by $R_c=\{(c, (b, \rho)) \,|\, c=commit_C(b, \rho) \}$, where $b$ is a bit to which $C$ commits, $\rho$ is the randomness for the commitment, and $c$ is the commitment itself.
-    \item $(P_f, V_f)$ is a zero-knowledge proof of knowledge for the \NP-relation defined by $R_f=\{(y, x)\,|\,y = f(x)\}$, where $f\in\mathcal{F}$.
-    \item $(P', V')$ is a zero-knowledge proof for the \NP-relation defined by $R'=\{((c, b), (\rho, x)) \,|\, c = commit_C(b, \rho) \lor y = f(x)\}$.
+    \item
+      $(P_c, V_c)$ is a zero-knowledge proof of knowledge for the \NP-relation defined by
+      \begin{displaymath}
+        R_c=\{(c, (b, \rho)) \,|\, c=commit_C(b, \rho) \},
+      \end{displaymath}
+      where $b$ is a bit to which $C$ commits, $\rho$ is the randomness for the commitment, and $c$ is the commitment itself.
+    \item $(P_f, V_f)$ is a zero-knowledge proof of knowledge for the \NP-relation defined by
+      \begin{displaymath}
+        R_f=\{(y, x)\,|\,y = f(x)\}.
+      \end{displaymath}
+    \item $(P', V')$ is a zero-knowledge proof for the \NP-relation defined by
+      \begin{displaymath}
+        R_0=\{((c, b, y), (\rho, x)) \,|\, c = commit_C(b, \rho) \lor y = f(x)\}.
+      \end{displaymath}
     \end{itemize}
     We now construct commitment scheme $(C', R')$ which securely implements the ideal functionality for $\mathcal{F}_{com}$.
     The scheme is defined by the commit phase and the open phase, on input (to the committer) $b$:
@@ -85,11 +96,14 @@
         At this point, $C'$ simulates $P_c$ while $R'$ simulates $V_c$ in a zero-knowledge proof of knowledge that $(c, (b, \rho))\in R_c$.
       \end{enumerate}
     \item[Open phase] \hfill \\
-      $C'$ simulates $P'$ while $R'$ simulates $V'$ in a zero-knowledge proof that $((c, b), (\rho, x))\in R'$.
+      $C'$ simulates $P'$ while $R'$ simulates $V'$ in a zero-knowledge proof that $((c, b, y), (\rho, x))\in R_0$.
     \end{description}
-    We first note that even with the addition of the zero-knowledge proofs (of knowledge), this protocol remains a computationally hiding and binding commitment scheme (whose hardness is based on that of the underlying commitment scheme $(C, R)$).
-    Assume it is not computationally hiding.
-    Then we can construct an adversary which can guess the committed bit $b$ when receiving the commitment $c$.
+    We first note that even with the addition of the zero-knowledge proofs (of knowledge), this protocol remains a computationally hiding and perfectly binding commitment scheme (whose hardness is based on that of the underlying commitment scheme $(C, R)$).
+    If it is not computationally hiding, there is an adversary which can guess, with high probability, the committed bit $b$ given the commitment $c$.
+    This violates the computational hiding of the underlying commitment scheme $(C, R)$ (by constructing a new adversary which uses the first adversary by just simulating the rest of the $(C', R')$ protocol as expected).
+    If it is not perfectly binding, there is some non-negligible fraction of random coins $r$ for the receiver $R'$ such that some sequence of messages from the committer $C'$ is an ambiguous commitment (that is, possibly a commitment to 0 and possibly a commitment to 1).
+    This implies there is some non-negligible fraction of random coins for the underlying receiver $R$ such that some sequence of messages from the underlying committer $C$ is an ambiguous commitment, as well.
+    Therefore, $(C', R')$ remains a computationally hiding and perfectly binding commitment scheme.
 
     To show that $(C', R')$ securely realizes the ideal commitment functionality described by $\mathcal{F}_{com}$, we need to show that both the committer and the receiver are simulatable.
     \begin{description}
@@ -108,23 +122,18 @@
         \end{enumerate}
       \item[Open phase] \hfill
         \begin{enumerate}
-        \item Simulate the interaction of $V'$ (having input $\tilde{c}$) with $A_{C'}$, which will yield $\textsf{open}$.
+        \item Simulate the interaction of $V'$ (having input $(\tilde{c}, \tilde{b}, y)$) with $A_{C'}$, which will yield $\textsf{open}$.
         \item Send $\textsf{open}$ to $\mathcal{F}_{com}$.
         \end{enumerate}
       \end{description}
-      The simulator $S_{C'}$ outputs the transcript of its interaction with $A_C$ (including the transcript output by the extractor $E_c$).
-      We will show that this transcript is indistinguishable from the view of the adversary $A_{C'}$ when interacting with the real (honest) receiver $R'$.
+      The simulator $S_{C'}$ outputs the transcript of its interaction with $A_{C'}$ (including the transcript output by the extractor $E_c$).
+      By choosing a random preimage $x$ and by simulating the actions of $P_f$, $E_c$, and $V'$ in the appropriate places, the simulator provides a transcript which is indistinguishable from the view of the adversary when interacting with the real receiver, $R'$.
 
-      First, in the commit phase, the honest receiver $R'$ sends an image under $f$ of a random element in the domain of $f$; the simulator does the same thing, these random elements of the domain of $f$ are indistinguishable.
-      Next, $R'$ engages in a zero-knowledge proof that $(y, x)\in R_f$, acting as a prover; the simulator does the same thing, so the transcript of this interaction will be indistinguishable from the transcript of the interaction between $A_{C'}$ and $R'$.
-      Next, the adversary $A_{C'}$ outputs a commitment $\tilde{c}$; since the previous two parts of the interaction are indistinguishable, so will be this commitment.
-      Next, $R'$ engages in a zero-knowledge proof that $(c, (b, \rho))\in R_c$, acting as the verifier; the simulator uses the extractor $E_c$ to produce, along with the extracted witness $(\tilde{b}, \tilde{\rho})$, an indistinguishable transcript which the simulator includes in its output.
-      Finally, in the open phase, the simulator does exactly what the honest receiver would have done.
-
-      In this ideal execution, the extracted bit $\tilde{b}$ is provided to the ideal functionality, which eventually sends that bit up to the environment.
-      In the real execution, the extracted bit
-
-
+      Assume now that there is an environment $\mathcal{E}$ which can distinguish between $\textsc{Exec}^\mathcal{E}_{A_{C'}, R'}(z)$ and $\textsc{Exec}^{\mathcal{E}}_{S_{C'}, \mathcal{F}_{com}}(z)$.
+      If $f$ is a one-way function, then $\mathcal{E}$ cannot invert it, and hence must distinguish in the $(P_c, V_c)$ phase, or the $(P', V')$ phase of the protocol.
+      If it distinguishes in either of these phases, we could construct an adversary which breaks the hiding of the underlying commitment scheme $(C, R)$.
+      If $(C, V)$ is a hiding commitment scheme, then the environment must distinguish in the $(P_f, V_f)$ phase, in which case we could construct an adversary which breaks the one-way-ness of $f$.
+      Thus no such environment can exist, so for all environments the real and ideal executions are indistinguishable.
     \item[Simulator for the receiver] \hfill
       Suppose $E_f$ is the proof of knowledge extractor for $(P_f, V_f)$.
       Let $A_{R'}$ be an adversarial receiver, and construct a simulator $S_{R'}$ which proceeds as follows:
@@ -135,17 +144,25 @@
         \item $\rho\getrpoly$.
         \item $c\gets commit_C(0, \rho)$.
         \item Run $A_{R'}$ to yield $y$.
-        \item Simulate the interaction of $E_f$ with $A_R$, which will yield $\tilde{x}$ (the preimage of $y$ under $f$).
-        \item Send $c$ to $A_R$.
-        \item Simulate the interaction of $P_c$ (having input $c$ and witness $(0, \rho)$) with $A_R$.
+        \item Simulate the interaction of $E_f$ with $A_{R'}$, which will yield $\tilde{x}$ (the preimage of $y$ under $f$).
+        \item Send $c$ to $A_{R'}$.
+        \item Simulate the interaction of $P_c$ (having input $c$ and witness $(0, \rho)$) with $A_{R'}$.
         \end{enumerate}
       \item[Open phase] \hfill
         \begin{enumerate}
         \item Receive $\textsf{open}$ from $\mathcal{F}_{com}$.
-        \item Simulate the interaction of $P'$ (with input $(c, b)$ and witness $(\rho, \tilde{x})$) with $A_R$.
+        \item Simulate the interaction of $P'$ (with input $(c, b, y)$ and witness $(\rho, \tilde{x})$) with $A_{R'}$.
         \end{enumerate}
       \end{description}
+      The simulator outputs the transcript of its interaction with $A_{R'}$ (including the transcript output by the extractor $E_f$).
+      As above, the transcript is computationally indistinguishable from the view of the adversary when interacting with the real committer, $C'$.
+      Note that $c$, the commitment to $0$, is indistinguishable from the real commitment because of the computational hiding of the underlying commitment scheme $(C, R)$.
+
+      Assume now that there is an environment $\mathcal{E}$ that can distinguish between $\textsc{Exec}^\mathcal{E}_{A_{R'}, C'}(z)$ and $\textsc{Exec}^{\mathcal{E}}_{S_{R'}, \mathcal{F}_{com}}(z)$.
+      The argument here is similar to the argument above, and so is omitted.
+      We conclude that no such environment exists, and hence we have shown that for all environments the real and ideal executions are indistinguishable.
     \end{description}
+    Since we have shown that both the committer and the receiver for the $(C', R')$ protocol are simulatable in the ideal world, this completes the proof that $(C', R')$ securely realizes $\mathcal{F}_{com}$.
   \end{enumerate}
 \end{enumerate}
 \end{document}
