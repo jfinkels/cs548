@@ -1,19 +1,19 @@
 \documentclass[draft]{article}
-%\usepackage{fullpage}
-%\usepackage{amsmath}
+\usepackage{fullpage}
+\usepackage{amsmath}
 \usepackage{amssymb}
 
 % new commands
 \newcommand{\collaborators}[1]{\emph{Collaborators: #1}}
 %\newcommand{\cid}{\overset{c}{\simeq}}
 %\newcommand{\ncid}{\overset{c}{\not\simeq}}
-%% \newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
-%\newcommand{\getr}{\overset{R}{\gets}}
+\newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
+\newcommand{\getr}{\overset{R}{\gets}}
 %\newcommand{\getrn}{\getr\{0, 1\}^n}
-%\newcommand{\getrsingle}{\getr\{0, 1\}}
+\newcommand{\getrsingle}{\getr\{0, 1\}}
 %% \newcommand{\getrell}{\getr\{0, 1\}^{\ell(n)}}
-%\newcommand{\getrpoly}{\getrsingle^{poly(n)}}
-%% \newcommand{\NP}{\class{NP}}
+\newcommand{\getrpoly}{\getrsingle^{poly(n)}}
+\newcommand{\NP}{\class{NP}}
 %\newcommand{\mim}{\mathsf{mim}}
 %\newcommand{\msim}{\mathsf{sim}}
 
@@ -50,8 +50,102 @@
   \end{enumerate}
 \item
   \begin{enumerate}
-  \item I don't know.
-  \item I don't know.
+  \item $\mathcal{F}_{com}$ is defined as follows:
+    \begin{enumerate}
+    \item Receive $m$ from committer.
+    \item Send $\textsf{committed}$ to receiver.
+    \item Receive $\textsf{open}$ from committer.
+    \item Send $m$ to receiver.
+    \end{enumerate}
+  \item
+    Suppose we have the following components:
+    \begin{itemize}
+    \item $(C, R)$ is a commitment scheme.
+    \item $f$ is a one-way function.
+    \item $(P_c, V_c)$ is a zero-knowledge proof of knowledge for the \NP-relation defined by $R_c=\{(c, (b, \rho)) \,|\, c=commit_C(b, \rho) \}$, where $b$ is a bit to which $C$ commits, $\rho$ is the randomness for the commitment, and $c$ is the commitment itself.
+    \item $(P_f, V_f)$ is a zero-knowledge proof of knowledge for the \NP-relation defined by $R_f=\{(y, x)\,|\,y = f(x)\}$, where $f\in\mathcal{F}$.
+    \item $(P', V')$ is a zero-knowledge proof for the \NP-relation defined by $R'=\{((c, b), (\rho, x)) \,|\, c = commit_C(b, \rho) \lor y = f(x)\}$.
+    \end{itemize}
+    We now construct commitment scheme $(C', R')$ which securely implements the ideal functionality for $\mathcal{F}_{com}$.
+    The scheme is defined by the commit phase and the open phase, on input (to the committer) $b$:
+    \begin{description}
+    \item[Commit phase] \hfill
+      \begin{enumerate}
+      \item[($R'1$)]
+        Choose $x\getrpoly$.
+        Let $y = f(x)$.
+        Send $y$ to $C'$.
+
+        At this point, $R'$ simulates $P_f$ while $C'$ simulates $V_f$ in a zero-knowledge proof of knowledge that $(y, x)\in R_f$.
+      \item[($C'1$)]
+        Choose $\rho\getrpoly$.
+        Let $c=commit_C(b, \rho)$.
+        Send $c$ to $R'$.
+
+        At this point, $C'$ simulates $P_c$ while $R'$ simulates $V_c$ in a zero-knowledge proof of knowledge that $(c, (b, \rho))\in R_c$.
+      \end{enumerate}
+    \item[Open phase] \hfill \\
+      $C'$ simulates $P'$ while $R'$ simulates $V'$ in a zero-knowledge proof that $((c, b), (\rho, x))\in R'$.
+    \end{description}
+    We first note that even with the addition of the zero-knowledge proofs (of knowledge), this protocol remains a computationally hiding and binding commitment scheme (whose hardness is based on that of the underlying commitment scheme $(C, R)$).
+    Assume it is not computationally hiding.
+    Then we can construct an adversary which can guess the committed bit $b$ when receiving the commitment $c$.
+
+    To show that $(C', R')$ securely realizes the ideal commitment functionality described by $\mathcal{F}_{com}$, we need to show that both the committer and the receiver are simulatable.
+    \begin{description}
+    \item[Simulator for the committer] \hfill \\
+      Suppose $E_c$ is the proof of knowledge extractor for $(P_c, V_c)$.
+      Let $A_{C'}$ be an adversarial committer, and construct a simulator $S_{C'}$ which proceeds as follows:
+      \begin{description}
+      \item[Commit phase] \hfill
+        \begin{enumerate}
+        \item $x\getrpoly$.
+        \item $y\gets f(x)$.
+        \item Send $y$ to $A_{C'}$.
+        \item Simulate the interaction of $P_f$ (having input $y$ and witness $x$) with $A_{C'}$, which will yield a commitment $\tilde{c}$.
+        \item Simulate the interaction of $E_c$ with $A_{C'}$, which will yield $(\tilde{b}, \tilde{\rho})$.
+        \item Send $\tilde{b}$ to $\mathcal{F}_{com}$.
+        \end{enumerate}
+      \item[Open phase] \hfill
+        \begin{enumerate}
+        \item Simulate the interaction of $V'$ (having input $\tilde{c}$) with $A_{C'}$, which will yield $\textsf{open}$.
+        \item Send $\textsf{open}$ to $\mathcal{F}_{com}$.
+        \end{enumerate}
+      \end{description}
+      The simulator $S_{C'}$ outputs the transcript of its interaction with $A_C$ (including the transcript output by the extractor $E_c$).
+      We will show that this transcript is indistinguishable from the view of the adversary $A_{C'}$ when interacting with the real (honest) receiver $R'$.
+
+      First, in the commit phase, the honest receiver $R'$ sends an image under $f$ of a random element in the domain of $f$; the simulator does the same thing, these random elements of the domain of $f$ are indistinguishable.
+      Next, $R'$ engages in a zero-knowledge proof that $(y, x)\in R_f$, acting as a prover; the simulator does the same thing, so the transcript of this interaction will be indistinguishable from the transcript of the interaction between $A_{C'}$ and $R'$.
+      Next, the adversary $A_{C'}$ outputs a commitment $\tilde{c}$; since the previous two parts of the interaction are indistinguishable, so will be this commitment.
+      Next, $R'$ engages in a zero-knowledge proof that $(c, (b, \rho))\in R_c$, acting as the verifier; the simulator uses the extractor $E_c$ to produce, along with the extracted witness $(\tilde{b}, \tilde{\rho})$, an indistinguishable transcript which the simulator includes in its output.
+      Finally, in the open phase, the simulator does exactly what the honest receiver would have done.
+
+      In this ideal execution, the extracted bit $\tilde{b}$ is provided to the ideal functionality, which eventually sends that bit up to the environment.
+      In the real execution, the extracted bit
+
+
+    \item[Simulator for the receiver] \hfill
+      Suppose $E_f$ is the proof of knowledge extractor for $(P_f, V_f)$.
+      Let $A_{R'}$ be an adversarial receiver, and construct a simulator $S_{R'}$ which proceeds as follows:
+      \begin{description}
+      \item[Commit phase] \hfill
+        \begin{enumerate}
+        \item Receive $\textsf{committed}$ from $\mathcal{F}_{com}$.
+        \item $\rho\getrpoly$.
+        \item $c\gets commit_C(0, \rho)$.
+        \item Run $A_{R'}$ to yield $y$.
+        \item Simulate the interaction of $E_f$ with $A_R$, which will yield $\tilde{x}$ (the preimage of $y$ under $f$).
+        \item Send $c$ to $A_R$.
+        \item Simulate the interaction of $P_c$ (having input $c$ and witness $(0, \rho)$) with $A_R$.
+        \end{enumerate}
+      \item[Open phase] \hfill
+        \begin{enumerate}
+        \item Receive $\textsf{open}$ from $\mathcal{F}_{com}$.
+        \item Simulate the interaction of $P'$ (with input $(c, b)$ and witness $(\rho, \tilde{x})$) with $A_R$.
+        \end{enumerate}
+      \end{description}
+    \end{description}
   \end{enumerate}
 \end{enumerate}
 \end{document}
