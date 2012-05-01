@@ -45,8 +45,59 @@
     \item Receive $b$ from receiver.
     \item Send $x_b$ to receiver.
     \end{enumerate}
-  \item I don't know.
-  \item I don't know.
+  \item
+    Let $(S, R)$ be the oblivious transfer protocol described in class, and let $(G, D, F, B)$ be the enhanced trapdoor permutation.
+    To show that $(S, R)$ securely realizes the ideal oblivious transfer functionality described by $\mathcal{F}_{OT}$, we need to show that both the sender and the receiver are simulatable.
+    In some places, we will use the notation in \cite{goldreich2}.
+    \begin{description}
+    \item[Simulator for the sender] \hfill \\
+      Let $A_S$ be an adversarial sender.
+      The simulator $S_S$ proceeds as follows on input $(x_0, x_1)$:
+      \begin{enumerate}
+      \item Run $A_S$ on inputs $(x_0, x_1)$ to yield $\alpha$.
+      \item $y_0, y_1 \getr D(\alpha)$ (uniformly and independently).
+      \item Send $(y_0, y_1)$ to $A_S$, which yields $(c_0, c_1)$.
+      \item Send $(x_0, x_1)$ to $\mathcal{F}_{OT}$.
+      \end{enumerate}
+      The transcript produced by this simulator is distibuted identically to the view of the sender in the real execution:
+      \begin{itemize}
+      \item the inputs $(x_0, x_1)$ are the same
+      \item since $f_\alpha$ is a trapdoor \emph{permutation}, the images in the real execution of the two uniformly randomly distributed elements of the domain $D_\alpha$ are also distributed in a uniformly random way.
+      \end{itemize}
+      No environment exists which can distinguish the transcript of the ideal execution from the view of the real execution, otherwise it could distinguish between two identical distributions, which is impossible.
+      Therefore the transcript and the view are indistinguishable in both the real and the ideal executions.
+    \item[Simulator for the receiver] \hfill \\
+      Let $A_R$ be an adversarial receiver.
+      The simulator $S_R$ proceeds as follows on input $b$:
+      \begin{enumerate}
+      \item Send $b$ to $\mathcal{F}_{OT}$.
+      \item Receive $x_b$ from $\mathcal{F}_{OT}$.
+      \item $r\getrpoly$.
+      \item $(\alpha, t) \gets G(1^n, r)$.
+      \item Send $\alpha$ to $A_R$, which yields $(y_0, y_1)$.
+      \item $c_b \gets x_b \oplus HC(f^{-1}_\alpha(y_b))$.
+      \item $c_{\bar{b}} \getrsingle$.
+      \item Send $(c_0, c_1)$ to $A_R$, which yields a bit $d$.
+      \end{enumerate}
+      The simulator outputs the transcript of its execution with $A_R$, along with its randomness and inputs.
+      With the exception of $c_{\bar{b}}$, the transcript of the simulator is distributed identically to the view of the real interaction: $r$ is generated uniformly at random, $\alpha$ and $t$ are generated according to $G$ which appears random, the messages $y_0$ and $y_1$ are the same as the real adversary's, and $c_b$ is produced in the same way as in the real execution.
+      In the simulation, $c_{\bar{b}}$ is uniform and independently random, whereas in the real execution, $c_{\bar{b}}$ is the hard-core bit for $f_\alpha^{-1}(x_{\bar{b}})$.
+      Since the trapdoor permutation is enhanced, no distinguisher, even with $\alpha$ and the randomness used to sample $x_{\bar{b}}$ in the real execution, can distinguish between $c_{\bar{b}}$ and random.
+    \end{description}
+  \item
+    We assume that a party can either send its correct input or $\textsf{abort}$ to the trusted party.
+    Further, we assume that if a party does not send anything to the trusted party, this is the same as $\textsf{abort}$.
+    We modify the ideal functionality so that it proceeds as follows:
+    \begin{enumerate}
+    \item
+      Receive either $(x_0, x_1)$ or $\textsf{abort}$ from sender.
+      If $\textsf{abort}$, send $\bot$ to both sender and receiver.
+    \item
+      Receive either $b$ or $\textsf{abort}$ from receiver.
+      If $\textsf{abort}$, send $\bot$ to both sender and receiver.
+    \item Send $x_b$ to receiver.
+    \end{enumerate}
+    In this way, we compensate for any fail-stop adversaries by halting the entire multi-party computation.
   \end{enumerate}
 \item
   \begin{enumerate}
@@ -165,4 +216,6 @@
     Since we have shown that both the committer and the receiver for the $(C', R')$ protocol are simulatable in the ideal world, this completes the proof that $(C', R')$ securely realizes $\mathcal{F}_{com}$.
   \end{enumerate}
 \end{enumerate}
+\bibliographystyle{plain}
+\bibliography{bibliography}
 \end{document}
